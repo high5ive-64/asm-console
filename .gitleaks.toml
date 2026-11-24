@@ -1,0 +1,10 @@
+# Outsider ASM — gitleaks config. Extends the stock ruleset; add allowlist
+# entries below for anything that trips a false positive.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Project-known false positives"
+paths = [
+  '''docker/versions\.env''',
+]

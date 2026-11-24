@@ -1,0 +1,25 @@
+#!/bin/sh
+# Secret-scanning tripwire for Outsider ASM. Blocks a commit if gitleaks finds a
+# secret in the staged changes. No-ops (with a warning) when gitleaks isn't
+# installed, so it never blocks a commit just by being absent.
+#   Install:  brew install gitleaks   |   go install github.com/gitleaks/gitleaks/v8@latest
+#   Enable :  git config core.hooksPath .githooks
+
+if ! command -v gitleaks >/dev/null 2>&1; then
+  echo "⚠  gitleaks not installed — skipping secret scan (commit allowed)."
+  echo "   Install it to arm this tripwire:  brew install gitleaks"
+  exit 0
+fi
+
+if gitleaks git -h >/dev/null 2>&1; then
+  gitleaks git --staged --no-banner --redact .
+else
+  gitleaks protect --staged --redact --no-banner
+fi
+if [ "$?" -ne 0 ]; then
+  echo ""
+  echo "✖  gitleaks flagged a potential secret in staged changes — commit aborted."
+  echo "   False positive? add a rule to .gitleaks.toml.  Bypass once: git commit --no-verify"
+  exit 1
+fi
+exit 0
