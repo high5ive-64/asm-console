@@ -1,0 +1,70 @@
+name: asm-console
+
+services:
+  asm:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      args:
+        ZAP_VERSION: ${ZAP_VERSION:-2.17.0}
+        ZAP_SHA256: ${ZAP_SHA256:-}
+        GECKODRIVER_VERSION: ${GECKODRIVER_VERSION:-0.36.0}
+        TYPST_VERSION: ${TYPST_VERSION:-0.13.1}
+        BBOT_VERSION: ${BBOT_VERSION:-}
+        DNSTWIST_VERSION: ${DNSTWIST_VERSION:-}
+        URO_VERSION: ${URO_VERSION:-}
+        TLSX_VERSION: ${TLSX_VERSION:-latest}
+        GAU_VERSION: ${GAU_VERSION:-latest}
+        SMAP_VERSION: ${SMAP_VERSION:-latest}
+        CDNCHECK_VERSION: ${CDNCHECK_VERSION:-latest}
+        CLOUDLIST_VERSION: ${CLOUDLIST_VERSION:-latest}
+        TESTSSL_REF: ${TESTSSL_REF:-3.2}
+        DNSREAPER_REF: ${DNSREAPER_REF:-main}
+        CHECKDMARC_VERSION: ${CHECKDMARC_VERSION:-}
+        OPENSQUAT_VERSION: ${OPENSQUAT_VERSION:-}
+        DNSX_VERSION: ${DNSX_VERSION:-latest}
+        NAABU_VERSION: ${NAABU_VERSION:-latest}
+        WAPPALYZER_REF: ${WAPPALYZER_REF:-}
+    image: asm-console:local
+    container_name: asm-console
+    ports:
+      - "127.0.0.1:8443:8000"          # loopback only: nothing else on your network can reach it
+    volumes:
+      - ./data:/data                    # SQLite DB, run folders, exports
+      - ./secrets:/secrets              # master.key (generated on first start, mode 600)
+    environment:
+      ASM_ALLOWED_HOSTS: "localhost,127.0.0.1"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"   # reach Ollama / LM Studio on your Mac
+    # read_only is off for v1: BBOT and ZAP write caches and state under /home/asm at runtime.
+    # Everything else runs as a non-root user with all capabilities dropped.
+    tmpfs:
+      - /tmp:size=1g
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 6g
+    restart: unless-stopped
+
+  # Optional SpiderFoot sidecar (passive use case only when driven by Outsider ASM).
+  #   docker compose --profile spiderfoot up -d
+  # Its own web UI is on http://127.0.0.1:5001 (loopback only). That UI has no login and can run active modules:
+  # use it only for viewing, or leave the port mapping out. Outsider ASM always starts scans with usecase=passive.
+  spiderfoot:
+    profiles: ["spiderfoot"]
+    build:
+      context: https://github.com/smicallef/spiderfoot.git#${SPIDERFOOT_REF:-v4.0}
+    image: outsider-spiderfoot:local
+    container_name: outsider-spiderfoot
+    ports:
+      - "127.0.0.1:5001:5001"
+    volumes:
+      - spiderfoot-data:/var/lib/spiderfoot
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 2g
+    restart: unless-stopped
+
+volumes:
+  spiderfoot-data:
