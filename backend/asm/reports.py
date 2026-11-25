@@ -14,6 +14,7 @@ counts, MITRE ids, control mappings and recommendations are kept — they carry 
 """
 from __future__ import annotations
 
+import ipaddress
 import re
 import shutil
 import subprocess
@@ -61,7 +62,10 @@ class Redactor:
         self.on = on
         self._host: dict[str, str] = {}
         self._ip: dict[str, str] = {}
+        self._email: dict[str, str] = {}
         self._ip_re = re.compile(r"\b\d{1,3}(?:\.\d{1,3}){3}\b")
+        self._ip6_re = re.compile(r"(?:[0-9a-f]{0,4}:){2,}[0-9a-f]{0,4}", re.I)
+        self._email_re = re.compile(r"[a-z0-9._%+\-]+@(?:[a-z0-9\-]+\.)+[a-z]{2,}", re.I)
         self._host_re = re.compile(r"\b(?:[a-z0-9_-]+\.)+[a-z]{2,}\b", re.I)
 
     def host(self, h):
@@ -82,10 +86,31 @@ class Redactor:
             self._ip[v] = f"ip-{len(self._ip) + 1:02d}"
         return self._ip[v]
 
+    def email(self, v):
+        if not v:
+            return v or ""
+        if not self.on:
+            return v
+        if v not in self._email:
+            self._email[v] = f"email-{len(self._email) + 1:02d}"
+        return self._email[v]
+
+    def _sub_ip6(self, m):
+        tok = m.group(0)
+        try:
+            if ipaddress.ip_address(tok).version != 6:
+                return tok
+        except ValueError:
+            return tok
+        return self.ip(tok)
+
     def text(self, s):
         if not s or not self.on:
             return s or ""
+        # order matters: whole emails first (so a domain isn't half-redacted), then IPv4, IPv6, hosts
+        s = self._email_re.sub(lambda m: self.email(m.group(0)), s)
         s = self._ip_re.sub(lambda m: self.ip(m.group(0)), s)
+        s = self._ip6_re.sub(self._sub_ip6, s)
         s = self._host_re.sub(lambda m: self.host(m.group(0)), s)
         return s
 
