@@ -7,9 +7,11 @@ resolvers, and optionally WhoisXML. Results become scope_items for you to review
 from __future__ import annotations
 
 import asyncio
+import ipaddress
 import json
 import os
 import secrets as pysecrets
+import socket
 import urllib.parse
 import urllib.error
 import urllib.request
@@ -18,6 +20,42 @@ from pathlib import Path
 from typing import Any
 
 from .db import DB, now
+
+
+# --- SSRF guard for outbound page fetches ------------------------------------
+def _resolved_ips_public(host: str) -> bool:
+    """True only if the host resolves and every resolved address is a global (public) IP.
+    Blocks fetches/redirects to loopback, link-local (incl. the 169.254.169.254 cloud-metadata
+    address), private and reserved ranges. urllib re-resolves at connect time, so this is not by
+    itself a full DNS-rebinding defence; it does stop a scanned target redirecting us to an
+    internal address, which is the realistic vector here (self-host)."""
+    if not host:
+        return False
+    try:
+        infos = socket.getaddrinfo(host, None)
+    except OSError:
+        return False
+    seen = False
+    for info in infos:
+        seen = True
+        try:
+            if not ipaddress.ip_address(info[4][0]).is_global:
+                return False
+        except ValueError:
+            return False
+    return seen
+
+
+class _PublicOnlyRedirectHandler(urllib.request.HTTPRedirectHandler):
+    """Follow redirects only to http(s) targets that resolve entirely to public IPs."""
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        parts = urllib.parse.urlsplit(newurl)
+        if parts.scheme not in ("http", "https") or not _resolved_ips_public(parts.hostname or ""):
+            raise urllib.error.URLError(f"blocked redirect to non-public or non-http target: {newurl!r}")
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+
+_SAFE_OPENER = urllib.request.build_opener(_PublicOnlyRedirectHandler())
 from .domains import is_third_party, registrable_domain, shares_brand, under
 from .runner import ACTIVE, Runner, StageCancelled, StageFailed
 from .scope import ScopeError, host_of, normalise_domain
@@ -158,9 +196,12 @@ class Providers:
     async def http_page(self, url: str, timeout: int = 15, max_bytes: int = 512 * 1024) -> dict | None:
         """One ordinary GET (redirects followed): status, lower-cased headers, Set-Cookie names, body text, final URL."""
         def go():
+            parts = urllib.parse.urlsplit(url)
+            if parts.scheme not in ("http", "https") or not _resolved_ips_public(parts.hostname or ""):
+                return None     # SSRF guard: only fetch public http(s) hosts
             try:
                 req = urllib.request.Request(url, headers={"User-Agent": self.ua, "Accept": "text/html,*/*;q=0.8"})
-                r = urllib.request.urlopen(req, timeout=timeout)
+                r = _SAFE_OPENER.open(req, timeout=timeout)
             except urllib.error.HTTPError as e:
                 r = e
             except Exception:
