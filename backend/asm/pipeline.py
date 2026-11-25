@@ -631,8 +631,8 @@ def _new_inscope_hosts(c: Ctx, cap: int = 300) -> list[str]:
                     h = (urllib.parse.urlsplit(line.strip()).hostname or "").lower()
                     if h:
                         cand.add(h)
-            except Exception:
-                pass
+            except Exception as exc:
+                c.runner.event("reenrich", "couldn't read historical URLs for re-enrichment: " + str(exc)[:160], "warn")
     tlsx = c.run_dir / "tls" / "tlsx.json"
     if tlsx.exists():
         try:
@@ -645,8 +645,8 @@ def _new_inscope_hosts(c: Ctx, cap: int = 300) -> list[str]:
                     s = str(s).lstrip("*.").strip().lower()
                     if s:
                         cand.add(s)
-        except Exception:
-            pass
+        except Exception as exc:
+            c.runner.event("reenrich", "couldn't read TLS certificate SANs for re-enrichment: " + str(exc)[:160], "warn")
     zp = c.run_dir / "zap" / "zap-estate.json"
     if zp.exists():
         try:
@@ -655,8 +655,8 @@ def _new_inscope_hosts(c: Ctx, cap: int = 300) -> list[str]:
                 h = (urllib.parse.urlsplit(site.get("@name", "")).hostname or site.get("@host", "")).lower()
                 if h:
                     cand.add(h)
-        except Exception:
-            pass
+        except Exception as exc:
+            c.runner.event("reenrich", "couldn't read the ZAP estate for re-enrichment: " + str(exc)[:160], "warn")
     return sorted(h for h in cand if h and inscope(h) and h not in assets)[:cap]
 
 
