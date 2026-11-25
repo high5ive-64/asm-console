@@ -745,9 +745,23 @@ def _sec_appendices(d: dict, R: Redactor) -> str:
     return "".join(out)
 
 
+def _incomplete_banner(d: dict) -> str:
+    """A loud banner when the scan did not finish cleanly, so a (shared) report never implies a clean
+    bill it didn't earn. Driven by the recorded stage failures, not a guess."""
+    ov = d.get("overview") or {}
+    failed = ov.get("failed_stages") or []
+    if not failed and (d.get("scan") or {}).get("status") != "completed_with_errors":
+        return ""
+    names = ", ".join(_em(s.replace("_", " ")) for s in failed) or "one or more stages"
+    return ('#block(width: 100%, fill: rgb("#fdecea"), inset: 8pt, radius: 3pt, stroke: 0.5pt + rgb("#c0392b"))'
+            '[#text(fill: rgb("#922b21"))[*Incomplete scan.* ' + names + ' did not complete, so the findings '
+            'and the rating below may understate risk. Re-run the failed stage(s) for a complete picture.]]\n#v(6pt)\n')
+
+
 def master_typ(d: dict, R: Redactor) -> str:
     parts = [
         _preamble(d, R.on),
+        _incomplete_banner(d),
         _sec_exec(d, R),
         _sec_scope(d, R),
         _sec_findings(d, R),

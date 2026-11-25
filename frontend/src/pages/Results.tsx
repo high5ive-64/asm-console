@@ -66,7 +66,7 @@ const fileUrl = (scanId: string, path: string, download = false) =>
 type EntityKind = "finding" | "host" | "path" | "more" | "tech" | "port" | "exposed" | "step";
 interface Entity { kind: EntityKind; id: string }
 
-// internet-exposed port → service name, and which ports are high-risk to expose
+// internet-exposed port â service name, and which ports are high-risk to expose
 const PORT_SVC: Record<number, string> = {
   21: "FTP", 22: "SSH", 23: "Telnet", 25: "SMTP", 53: "DNS", 80: "HTTP", 110: "POP3", 111: "RPC", 135: "MSRPC",
   139: "NetBIOS", 143: "IMAP", 389: "LDAP", 443: "HTTPS", 445: "SMB", 465: "SMTPS", 587: "SMTP", 636: "LDAPS",
@@ -208,7 +208,7 @@ function GlobalSearch(props: { scanId: string; go: (l: NavLink) => void }) {
     <div className="gsearch" ref={box}>
       <input
         className="search gsearch-input"
-        placeholder="Search this scan — host, IP or finding…"
+        placeholder="Search this scan â host, IP or findingâ¦"
         value={q}
         onChange={(e) => setQ(e.target.value)}
         onFocus={() => res && setOpen(true)}
@@ -217,7 +217,7 @@ function GlobalSearch(props: { scanId: string; go: (l: NavLink) => void }) {
       />
       {open && res && (
         <div className="gsearch-panel" role="listbox">
-          {total === 0 && <div className="gsearch-empty muted small">No hosts, IPs or findings match “{res.q}”.</div>}
+          {total === 0 && <div className="gsearch-empty muted small">No hosts, IPs or findings match â{res.q}â.</div>}
           {res.hosts.length > 0 && (
             <div className="gsearch-group">
               <div className="gsearch-head">Hosts</div>
@@ -264,7 +264,7 @@ function GlobalSearch(props: { scanId: string; go: (l: NavLink) => void }) {
 
 // ---- overview ---------------------------------------------------------------------------
 
-// colour an at-a-glance tile when its number is worth noticing — red for exposure/exploitation, amber
+// colour an at-a-glance tile when its number is worth noticing â red for exposure/exploitation, amber
 // for hygiene gaps, blue for the agent surface; plain when zero or neutral
 const TILE_BAD = new Set(["takeover_risks", "risky_services", "high_findings", "kev_cves"]);
 const TILE_WARN = new Set(["unknown_hosts", "medium_findings", "expiring_certs", "dmarc_missing", "lookalikes_with_mail", "likely_exploited", "open_ports"]);
@@ -278,7 +278,7 @@ function tileTone(key: string, value: number): "" | "bad" | "warn" | "info" {
 }
 
 const VCONF_LABEL: Record<string, string> = { confirmed: "Confirmed", probable: "Probable", unconfirmed: "Unconfirmed" };
-const VCONF_SUB: Record<string, string> = { confirmed: "version in affected range — act now", probable: "version fingerprinted — verify the build", unconfirmed: "no version — fingerprint first" };
+const VCONF_SUB: Record<string, string> = { confirmed: "version in affected range â act now", probable: "version fingerprinted â verify the build", unconfirmed: "no version â fingerprint first" };
 const VCONF_TONE: Record<string, string> = { confirmed: "bad", probable: "warn", unconfirmed: "muted" };
 
 function ConfBadge(props: { c: string }) {
@@ -292,7 +292,7 @@ function VulnMatrix(props: { m: Overview["vuln_matrix"]; go: (l: NavLink) => voi
   if (sevs.length === 0) return null;
   return (
     <Card title="CVE confidence">
-      <p className="muted small" style={{ marginTop: 0 }}>Version-based CVEs by how sure we are the host is actually affected — so the act-now cases don't drown in the maybes.</p>
+      <p className="muted small" style={{ marginTop: 0 }}>Version-based CVEs by how sure we are the host is actually affected â so the act-now cases don't drown in the maybes.</p>
       <table className="table compact vmx">
         <thead><tr><th>Confidence</th>{sevs.map((s) => <th key={s} className="vmx-sev">{s}</th>)}</tr></thead>
         <tbody>
@@ -308,8 +308,8 @@ function VulnMatrix(props: { m: Overview["vuln_matrix"]; go: (l: NavLink) => voi
                   return (
                     <td key={s} className={"vmx-cell" + (act ? " vmx-act" : "")}>
                       {n > 0
-                        ? <button className="linklike" onClick={() => props.go({ tab: "findings", filter: { area: "vulns", confidence: c } })} title={`${VCONF_LABEL[c]} · ${s}`}>{n}</button>
-                        : <span className="muted">·</span>}
+                        ? <button className="linklike" onClick={() => props.go({ tab: "findings", filter: { area: "vulns", confidence: c } })} title={`${VCONF_LABEL[c]} Â· ${s}`}>{n}</button>
+                        : <span className="muted">Â·</span>}
                     </td>
                   );
                 })}
@@ -319,7 +319,7 @@ function VulnMatrix(props: { m: Overview["vuln_matrix"]; go: (l: NavLink) => voi
         </tbody>
       </table>
       {vm.act_now > 0 && (
-        <p className="small" style={{ marginTop: 8 }}><strong className="vconf-bad-text">{vm.act_now} confirmed vulnerable</strong> — patch or mitigate now. The rest need the running version verified before acting.</p>
+        <p className="small" style={{ marginTop: 8 }}><strong className="vconf-bad-text">{vm.act_now} confirmed vulnerable</strong> â patch or mitigate now. The rest need the running version verified before acting.</p>
       )}
     </Card>
   );
@@ -349,7 +349,7 @@ function DiscoveredEmails(props: { scanId: string }) {
     <Card title={`Discovered emails (${data.count})`}>
       <p className="muted small" style={{ marginTop: 0 }}>
         Addresses BBOT extracted from pages, DNS and certificates.
-        {data.flagged ? " This domain shows breach exposure — you can run a per-address breach check (XposedOrNot)." : " A per-address breach check unlocks once the domain shows breach exposure."}
+        {data.flagged ? " This domain shows breach exposure â you can run a per-address breach check (XposedOrNot)." : " A per-address breach check unlocks once the domain shows breach exposure."}
       </p>
       <div className="email-list">
         {data.emails.map((e) => {
@@ -359,7 +359,7 @@ function DiscoveredEmails(props: { scanId: string }) {
               <span className="mono">{e.email}</span>
               {e.sources.length > 0 && <span className="muted small">{e.sources.join(", ")}</span>}
               {r && (r.breaches.length > 0
-                ? <span className="vconf-badge vconf-bad" title={r.breaches.join(", ")}>{r.breaches.length} breach{r.breaches.length === 1 ? "" : "es"}: {r.breaches.slice(0, 3).join(", ")}{r.breaches.length > 3 ? "…" : ""}</span>
+                ? <span className="vconf-badge vconf-bad" title={r.breaches.join(", ")}>{r.breaches.length} breach{r.breaches.length === 1 ? "" : "es"}: {r.breaches.slice(0, 3).join(", ")}{r.breaches.length > 3 ? "â¦" : ""}</span>
                 : r.ok ? <span className="vconf-badge vconf-muted">not found</span> : <span className="muted small">check failed</span>)}
             </div>
           );
@@ -368,7 +368,7 @@ function DiscoveredEmails(props: { scanId: string }) {
       {data.flagged && (
         <div style={{ marginTop: 10 }}>
           <Button small kind="secondary" disabled={checking} onClick={run}>
-            {checking ? "Checking…" : results ? "Re-check" : "Deep breach check on these emails →"}
+            {checking ? "Checkingâ¦" : results ? "Re-check" : "Deep breach check on these emails â"}
           </Button>
           {results && <span className="muted small" style={{ marginLeft: 10 }}>{results.filter((x) => x.breaches.length).length} of {results.length} exposed.</span>}
         </div>
@@ -387,18 +387,27 @@ function OverviewTab(props: { scanId: string; go: (l: NavLink) => void; onEntity
     api<{ findings: Finding[] }>(`/api/scans/${props.scanId}/findings`).then((r) => setFindings(r.findings)).catch(() => setFindings([]));
     api<{ assets: Asset[] }>(`/api/scans/${props.scanId}/assets`).then((r) => setAssets(r.assets)).catch(() => setAssets([]));
   }, [props.scanId]);
-  if (!o) return <Empty>Loading…</Empty>;
+  if (!o) return <Empty>Loadingâ¦</Empty>;
   const ragText = { red: "Needs action", amber: "Needs attention", green: "Nothing significant" }[o.rag];
   const v = o.values || {};
   return (
     <div className="stack">
+      {o.partial && (
+        <div className="incomplete-banner">
+          <strong>Incomplete scan.</strong>{" "}
+          {(o.failed_stages?.length ?? 0) > 0
+            ? `${o.failed_stages!.length} stage${o.failed_stages!.length === 1 ? "" : "s"} failed (${o.failed_stages!.map((s) => s.replace(/_/g, " ")).join(", ")}).`
+            : "Some stages didn't complete."}{" "}
+          Findings and the rating below may understate risk — re-run the failed stage(s).
+        </div>
+      )}
       <div className={`status-strip rag-${o.rag}`}>
         <span className="rag-dot" aria-hidden="true" />
         <strong>{o.rag.toUpperCase()}</strong>
-        <span className="status-sep">·</span>
+        <span className="status-sep">Â·</span>
         <span>{ragText}</span>
         <span className="muted status-nums">
-          {(o.severity.critical ?? 0) + (o.severity.high ?? 0)} high/critical · {o.severity.medium ?? 0} medium · {(v.hosts_in_scope ?? 0).toLocaleString()} hosts
+          {(o.severity.critical ?? 0) + (o.severity.high ?? 0)} high/critical Â· {o.severity.medium ?? 0} medium Â· {(v.hosts_in_scope ?? 0).toLocaleString()} hosts
           {v.unknown_hosts ? `, ${v.unknown_hosts.toLocaleString()} to triage` : ""}
         </span>
         {o.previous && <span className="muted small status-prev">prev {fmtDate(o.previous.finished_at)}: {o.previous.rag}</span>}
@@ -420,7 +429,7 @@ function OverviewTab(props: { scanId: string; go: (l: NavLink) => void; onEntity
             <button key={c.key} className={`mcard-c${tone ? " tone-" + tone : ""}`} onClick={() => (exposed ? props.onEntity("exposed", "") : props.go(c.link))} title={exposed ? "See the exposed services" : "Open the source of this number"}>
               <span className="mcard-c-value">{c.value.toLocaleString()}</span>
               <span className="mcard-c-label">{c.label}</span>
-              {c.previous !== null && c.trend && <span className={`mcard-c-trend trend-${c.trend}`}>{c.value > c.previous ? "▲" : "▼"}</span>}
+              {c.previous !== null && c.trend && <span className={`mcard-c-trend trend-${c.trend}`}>{c.value > c.previous ? "â²" : "â¼"}</span>}
             </button>
           );
         })}
@@ -441,7 +450,7 @@ function OverviewTab(props: { scanId: string; go: (l: NavLink) => void; onEntity
                   {o.agent_hosts.slice(0, 40).map((h) => (
                     <li key={h} className="chip mono" onClick={() => props.onEntity("host", h)} style={{ cursor: "pointer" }}>{h}</li>
                   ))}
-                  {o.agent_hosts.length > 40 && <li className="muted small">…and {o.agent_hosts.length - 40} more</li>}
+                  {o.agent_hosts.length > 40 && <li className="muted small">â¦and {o.agent_hosts.length - 40} more</li>}
                 </ul>
               </Card>
             )}
@@ -459,7 +468,7 @@ function OverviewTab(props: { scanId: string; go: (l: NavLink) => void; onEntity
                 </div>
                 {o.tech.length > 18 && (
                   <button className="linklike small" style={{ marginTop: 8 }} onClick={() => setAllTech((v) => !v)}>
-                    {allTech ? "Show fewer" : `Show all ${o.tech.length} technologies →`}
+                    {allTech ? "Show fewer" : `Show all ${o.tech.length} technologies â`}
                   </button>
                 )}
               </Card>
@@ -482,24 +491,24 @@ function Worklist(props: { o: Overview; findings: Finding[] | null; go: (l: NavL
   const items = useMemo<WorkRow[]>(() => {
     const fitems: WorkRow[] = props.findings
       ? rankIssues(aggregateIssues(props.findings), 2, 9999).head.map((i) => ({
-          severity: i.severity, title: i.title, meta: `${i.count} host${i.count === 1 ? "" : "s"} · ${AREA_LABEL[i.area] ?? i.area}`,
+          severity: i.severity, title: i.title, meta: `${i.count} host${i.count === 1 ? "" : "s"} Â· ${AREA_LABEL[i.area] ?? i.area}`,
           onClick: () => props.onEntity("finding", i.fid),
         }))
       : [];
     const actions: WorkRow[] = [];
-    if (v.unknown_hosts) actions.push({ severity: "medium", title: `${v.unknown_hosts.toLocaleString()} hosts not in the CMDB — triage them`, meta: "unknown assets", onClick: () => props.go({ tab: "triage", filter: { decision: "undecided" } }) });
-    if (v.agent_surface) actions.push({ severity: "medium", title: `${v.agent_surface} AI-agent / MCP host${v.agent_surface === 1 ? "" : "s"} exposed — review auth & rate limits`, meta: "agent surface", onClick: () => props.go({ tab: "assets", filter: { tag: "agent" } }) });
+    if (v.unknown_hosts) actions.push({ severity: "medium", title: `${v.unknown_hosts.toLocaleString()} hosts not in the CMDB â triage them`, meta: "unknown assets", onClick: () => props.go({ tab: "triage", filter: { decision: "undecided" } }) });
+    if (v.agent_surface) actions.push({ severity: "medium", title: `${v.agent_surface} AI-agent / MCP host${v.agent_surface === 1 ? "" : "s"} exposed â review auth & rate limits`, meta: "agent surface", onClick: () => props.go({ tab: "assets", filter: { tag: "agent" } }) });
     return [...actions, ...fitems].sort((a, b) => SEVS.indexOf(a.severity) - SEVS.indexOf(b.severity));
   }, [props.findings, props.o]);
   const CAPW = 14;
   const head = items.slice(0, CAPW);
   const extra = items.length - head.length;
   return (
-    <Card title="Needs attention — worst first" actions={<Button small kind="ghost" onClick={() => props.go({ tab: "findings", filter: {} })}>All findings</Button>}>
+    <Card title="Needs attention â worst first" actions={<Button small kind="ghost" onClick={() => props.go({ tab: "findings", filter: {} })}>All findings</Button>}>
       {props.findings === null ? (
-        <Empty>Loading…</Empty>
+        <Empty>Loadingâ¦</Empty>
       ) : items.length === 0 ? (
-        <Empty>Nothing above low severity — nice.</Empty>
+        <Empty>Nothing above low severity â nice.</Empty>
       ) : (
         <>
           <ul className="worklist">
@@ -510,13 +519,13 @@ function Worklist(props: { o: Overview; findings: Finding[] | null; go: (l: NavL
                   <Badge tone={SEV_TONE[it.severity]}>{it.severity}</Badge>
                   <span className="wl-title">{it.title}</span>
                   <span className="muted small wl-meta">{it.meta}</span>
-                  <span className="wl-chev">›</span>
+                  <span className="wl-chev">âº</span>
                 </button>
               </li>
             ))}
           </ul>
           {extra > 0 && (
-            <button className="linklike small wl-more" onClick={() => props.go({ tab: "findings", filter: {} })}>+{extra} more — view all in Findings →</button>
+            <button className="linklike small wl-more" onClick={() => props.go({ tab: "findings", filter: {} })}>+{extra} more â view all in Findings â</button>
           )}
         </>
       )}
@@ -574,7 +583,7 @@ function ChangesTab(props: { scanId: string; go: (l: NavLink) => void }) {
     setC(null);
     api<Changes>(`/api/scans/${props.scanId}/changes${against ? `?against=${encodeURIComponent(against)}` : ""}`).then(setC);
   }, [props.scanId, against]);
-  if (!c) return <Empty>Loading…</Empty>;
+  if (!c) return <Empty>Loadingâ¦</Empty>;
   if (!c.against) return <Empty>No earlier finished scan of this domain to compare with. Run another scan later to see what changed.</Empty>;
   const list = (title: string, items: ChangeFinding[], tone: "new" | "gone" | "moved") => (
     <Card title={`${title} (${items.length})`}>
@@ -585,15 +594,15 @@ function ChangesTab(props: { scanId: string; go: (l: NavLink) => void }) {
           {items.slice(0, 300).map((f, i) => (
             <li key={i}>
               <button className="risk" onClick={() => props.go({ tab: "findings", filter: { q: f.host ?? f.title } })} disabled={tone === "gone"}>
-                <Badge tone={SEV_TONE[f.severity]}>{f.was ? `${f.was} → ${f.severity}` : f.severity}</Badge>
+                <Badge tone={SEV_TONE[f.severity]}>{f.was ? `${f.was} â ${f.severity}` : f.severity}</Badge>
                 <span className="risk-title">{f.title}</span>
                 <span className="muted small">
-                  {f.host ?? ""} · {toolLabel(f.tool)}
+                  {f.host ?? ""} Â· {toolLabel(f.tool)}
                 </span>
               </button>
             </li>
           ))}
-          {items.length > 300 && <li className="muted small">…and {items.length - 300} more</li>}
+          {items.length > 300 && <li className="muted small">â¦and {items.length - 300} more</li>}
         </ul>
       )}
     </Card>
@@ -609,7 +618,7 @@ function ChangesTab(props: { scanId: string; go: (l: NavLink) => void }) {
               {h}
             </li>
           ))}
-          {items.length > 200 && <li className="muted small">…and {items.length - 200} more</li>}
+          {items.length > 200 && <li className="muted small">â¦and {items.length - 200} more</li>}
         </ul>
       )}
     </Card>
@@ -629,7 +638,7 @@ function ChangesTab(props: { scanId: string; go: (l: NavLink) => void }) {
         </label>
         {c.rag && (
           <span className="small">
-            Status: <span className={`rag-pill rag-pill-${c.rag.before}`}>{c.rag.before}</span> →{" "}
+            Status: <span className={`rag-pill rag-pill-${c.rag.before}`}>{c.rag.before}</span> â{" "}
             <span className={`rag-pill rag-pill-${c.rag.after}`}>{c.rag.after}</span>
           </span>
         )}
@@ -653,7 +662,7 @@ function ChangesTab(props: { scanId: string; go: (l: NavLink) => void }) {
               {Object.entries(c.metrics).map(([k, v]) => (
                 <tr key={k}>
                   <td>{k.replace(/_/g, " ")}</td>
-                  <td>{v.before ?? "—"}</td>
+                  <td>{v.before ?? "â"}</td>
                   <td>{v.after}</td>
                 </tr>
               ))}
@@ -744,7 +753,7 @@ function AssetsTab(props: { scanId: string; initial: Record<string, string | boo
         sort === "host" ? a.host.localeCompare(b.host) : sort === "expiry" ? (a.tls_expiry ?? "9999").localeCompare(b.tls_expiry ?? "9999") : sevScore(b) - sevScore(a) || a.host.localeCompare(b.host)
       );
   }, [assets, on, q, sort]);
-  if (!assets) return <Empty>Loading…</Empty>;
+  if (!assets) return <Empty>Loadingâ¦</Empty>;
   const toggle = (k: string) => {
     const n = new Set(on);
     if (n.has(k)) n.delete(k);
@@ -754,7 +763,7 @@ function AssetsTab(props: { scanId: string; initial: Record<string, string | boo
   return (
     <div className="stack">
       <div className="toolbar wrap">
-        <input className="search" placeholder="Search host, IP or technology…" value={q} onChange={(e) => setQ(e.target.value)} />
+        <input className="search" placeholder="Search host, IP or technologyâ¦" value={q} onChange={(e) => setQ(e.target.value)} />
         <span className="chips">
           {ASSET_FILTERS.map((f) => (
             <button key={f.key} className={`chip ${on.has(f.key) ? "on" : ""}`} onClick={() => toggle(f.key)}>
@@ -813,13 +822,13 @@ function AssetsTab(props: { scanId: string; initial: Record<string, string | boo
                     {a.triage ? (
                       <span className={`cat cat-${a.triage}`}>{decisions[a.triage] ?? a.triage}</span>
                     ) : a.suggestion ? (
-                      <span className="cat-suggest" title={a.suggestion.reasons.join(" · ")}>
+                      <span className="cat-suggest" title={a.suggestion.reasons.join(" Â· ")}>
                         <span className={`sg-dot sg-${a.suggestion.confidence}`} aria-hidden="true" />
                         {decisions[a.suggestion.decision] ?? a.suggestion.decision}
-                        <span className="muted"> · {a.suggestion.confidence}</span>
+                        <span className="muted"> Â· {a.suggestion.confidence}</span>
                       </span>
                     ) : (
-                      <span className="muted">—</span>
+                      <span className="muted">â</span>
                     )}
                   </td>
                   <td className="small nowrap">
@@ -878,7 +887,7 @@ function AssetDetail(props: { scanId: string; a: Asset; go: (l: NavLink) => void
         <dt>TLS</dt>
         <dd>
           {a.tls_version ? `${a.tls_version}, expires ${a.tls_expiry}` : "not checked"}
-          {a.tls_flags.length ? ` · ${a.tls_flags.join(", ")}` : ""}
+          {a.tls_flags.length ? ` Â· ${a.tls_flags.join(", ")}` : ""}
         </dd>
         <dt>Open ports</dt>
         <dd>{a.ports.join(", ") || "none seen by Shodan"}</dd>
@@ -890,7 +899,7 @@ function AssetDetail(props: { scanId: string; a: Asset; go: (l: NavLink) => void
         )}
         <dt>Network</dt>
         <dd>
-          {[a.edge?.cdn && `CDN ${a.edge.cdn}`, a.edge?.waf && `WAF ${a.edge.waf}`, a.edge?.cloud && `cloud ${a.edge.cloud}`].filter(Boolean).join(" · ") ||
+          {[a.edge?.cdn && `CDN ${a.edge.cdn}`, a.edge?.waf && `WAF ${a.edge.waf}`, a.edge?.cloud && `cloud ${a.edge.cloud}`].filter(Boolean).join(" Â· ") ||
             "no CDN, WAF or cloud provider matched"}
         </dd>
         <dt>Triage</dt>
@@ -921,7 +930,7 @@ function IpsTab(props: { scanId: string; go: (l: NavLink) => void; initial?: Rec
   useEffect(() => {
     api<IpsResponse>(`/api/scans/${props.scanId}/ips`).then(setData);
   }, [props.scanId]);
-  if (!data) return <Empty>Loading…</Empty>;
+  if (!data) return <Empty>Loadingâ¦</Empty>;
   const ql = q.trim().toLowerCase();
   const rows = data.ips.filter(
     (r) => (!onlyOwn || !r.shared) && (!ql || r.ip.includes(ql) || r.hosts.some((h) => h.includes(ql)) || (r.owner ?? "").toLowerCase().includes(ql))
@@ -929,11 +938,11 @@ function IpsTab(props: { scanId: string; go: (l: NavLink) => void; initial?: Rec
   return (
     <div className="stack">
       <p className="muted small">
-        {data.summary.own} of your own IPs · {data.summary.shared} on shared platforms · {data.summary.multi_host} carry more than one host. Shared-platform IPs
-        (AWS, Cloudflare…) are the provider's, not yours.
+        {data.summary.own} of your own IPs Â· {data.summary.shared} on shared platforms Â· {data.summary.multi_host} carry more than one host. Shared-platform IPs
+        (AWS, Cloudflareâ¦) are the provider's, not yours.
       </p>
       <div className="toolbar wrap">
-        <input className="search" placeholder="Search IP, host or owner…" value={q} onChange={(e) => setQ(e.target.value)} />
+        <input className="search" placeholder="Search IP, host or ownerâ¦" value={q} onChange={(e) => setQ(e.target.value)} />
         <label className="check small">
           <input type="checkbox" checked={onlyOwn} onChange={(e) => setOnlyOwn(e.target.checked)} /> Hide shared-platform IPs
         </label>
@@ -962,7 +971,7 @@ function IpsTab(props: { scanId: string; go: (l: NavLink) => void; initial?: Rec
                   <tr className={r.agent_hosts.length ? "row-agent" : ""}>
                     <td>
                       <button className="chev" onClick={() => setOpen(isOpen ? null : r.ip)}>
-                        {isOpen ? "▾" : "▸"}
+                        {isOpen ? "â¾" : "â¸"}
                       </button>
                     </td>
                     <td className="mono">
@@ -979,11 +988,11 @@ function IpsTab(props: { scanId: string; go: (l: NavLink) => void; initial?: Rec
                           {r.net_kind === "own" && <Badge tone="warn">org-owned?</Badge>}
                         </>
                       ) : (
-                        <span className="muted">—</span>
+                        <span className="muted">â</span>
                       )}
                     </td>
-                    <td className="small mono">{r.ports.join(", ") || "—"}</td>
-                    <td className="small">{r.tech.slice(0, 4).join(", ")}{r.tech.length > 4 ? "…" : ""}</td>
+                    <td className="small mono">{r.ports.join(", ") || "â"}</td>
+                    <td className="small">{r.tech.slice(0, 4).join(", ")}{r.tech.length > 4 ? "â¦" : ""}</td>
                   </tr>
                   {isOpen && (
                     <tr className="detail-row">
@@ -1009,7 +1018,7 @@ function IpsTab(props: { scanId: string; go: (l: NavLink) => void; initial?: Rec
                           <dt>Ports</dt>
                           <dd className="mono">
                             {r.ports.join(", ") || "none seen"}
-                            {r.ports_confirmed.length > 0 && <span className="muted"> · confirmed open: {r.ports_confirmed.join(", ")}</span>}
+                            {r.ports_confirmed.length > 0 && <span className="muted"> Â· confirmed open: {r.ports_confirmed.join(", ")}</span>}
                           </dd>
                           <dt>Responds</dt>
                           <dd>{r.live ? "answered HTTP/TLS during the scan" : "no web response observed"}</dd>
@@ -1055,14 +1064,14 @@ function AttackPathsTab(props: { scanId: string; go: (l: NavLink) => void }) {
     api<AttackPathsResponse>(`/api/scans/${props.scanId}/attack-paths`).then(setData);
     api<GraphSummary>(`/api/scans/${props.scanId}/graph`).then(setGraph).catch(() => setGraph(null));
   }, [props.scanId]);
-  if (!data) return <Empty>Loading…</Empty>;
-  if (data.paths.length === 0) return <Empty>No attack paths derived — nothing in this scan chains into one yet.</Empty>;
+  if (!data) return <Empty>Loadingâ¦</Empty>;
+  if (data.paths.length === 0) return <Empty>No attack paths derived â nothing in this scan chains into one yet.</Empty>;
   const paths = cat ? data.paths.filter((p) => p.category === cat) : data.paths;
   const s = data.summary;
   return (
     <div className="stack">
       <div className="banner banner-info small">
-        <strong>Theoretical paths for prioritisation.</strong> Each chains exposure the scan already found — nothing was attempted against your
+        <strong>Theoretical paths for prioritisation.</strong> Each chains exposure the scan already found â nothing was attempted against your
         systems. "Observed" means the enabling weakness was seen; "plausible" and "theoretical" are weaker signals. Verify before acting.
       </div>
       <div className="change-stats">
@@ -1095,7 +1104,7 @@ function AttackPathsTab(props: { scanId: string; go: (l: NavLink) => void }) {
           {Object.entries(s.by_agent_tag)
             .sort((a, b) => b[1] - a[1])
             .map(([t, n]) => `${t} (${n})`)
-            .join(" · ")}
+            .join(" Â· ")}
         </p>
       )}
       <div className="paths">
@@ -1111,7 +1120,7 @@ function AttackPathsTab(props: { scanId: string; go: (l: NavLink) => void }) {
         <Card title="Blast radius (from the asset graph)">
           {graph.summary.shared_certs.slice(0, 5).map((c) => (
             <p key={c.cert} className="small">
-              <Badge tone="warn">shared cert</Badge> <span className="mono">{c.cert}</span> is presented by {c.host_count} hosts — one key leak exposes them all.
+              <Badge tone="warn">shared cert</Badge> <span className="mono">{c.cert}</span> is presented by {c.host_count} hosts â one key leak exposes them all.
             </p>
           ))}
           {graph.summary.co_hosting.slice(0, 5).map((c) => (
@@ -1134,9 +1143,9 @@ function PathCard(props: { p: AttackPath; open: boolean; toggle: () => void; go:
         <Badge tone={SEV_TONE[p.severity]}>{p.severity}</Badge>
         <span className="fgroup-title">{p.title}</span>
         <span className="muted small nowrap">
-          {CAT_LABEL[p.category] ?? p.category} · <Badge tone={LIK_TONE[p.likelihood]}>{p.likelihood}</Badge>
+          {CAT_LABEL[p.category] ?? p.category} Â· <Badge tone={LIK_TONE[p.likelihood]}>{p.likelihood}</Badge>
         </span>
-        <span className="chev">{props.open ? "▾" : "▸"}</span>
+        <span className="chev">{props.open ? "â¾" : "â¸"}</span>
       </button>
       {props.open && (
         <div className="fgroup-body">
@@ -1183,7 +1192,7 @@ function PathCard(props: { p: AttackPath; open: boolean; toggle: () => void; go:
             <div className="inline wrap small" style={{ marginTop: 4 }}>
               {p.framing.references.map((r) => (
                 <a key={r.url} className="chip" href={r.url} target="_blank" rel="noreferrer">
-                  {r.label} ↗
+                  {r.label} â
                 </a>
               ))}
             </div>
@@ -1246,7 +1255,7 @@ function FindingsTab(props: { scanId: string; initial: Record<string, string | b
     return [...m.values()].sort((a, b) => SEVS.indexOf(a.severity) - SEVS.indexOf(b.severity) || b.items.length - a.items.length);
   }, [all, q, area, sev, tool, status, conf]);
 
-  if (!all) return <Empty>Loading…</Empty>;
+  if (!all) return <Empty>Loadingâ¦</Empty>;
   const areas = [...new Set(all.map((f) => f.area))];
   const tools = [...new Set(all.map((f) => f.source_tool))];
   const total = groups.reduce((n, g) => n + g.items.length, 0);
@@ -1264,7 +1273,7 @@ function FindingsTab(props: { scanId: string; initial: Record<string, string | b
   return (
     <div className="stack">
       <div className="toolbar wrap">
-        <input className="search" placeholder="Search title or host…" value={q} onChange={(e) => setQ(e.target.value)} />
+        <input className="search" placeholder="Search title or hostâ¦" value={q} onChange={(e) => setQ(e.target.value)} />
         <span className="chips">
           {SEVS.map((s) => (
             <button
@@ -1344,14 +1353,14 @@ function FindingsTab(props: { scanId: string; initial: Record<string, string | b
                 <Badge tone={SEV_TONE[g.severity]}>{g.severity}</Badge>
                 <span className="fgroup-title">{g.title}</span>
                 <span className="muted small nowrap">
-                  {g.items.length === 1 ? g.items[0].host : `${g.items.length} hosts`} · {AREA_LABEL[g.area] ?? g.area} · {toolLabel(g.tool)}
+                  {g.items.length === 1 ? g.items[0].host : `${g.items.length} hosts`} Â· {AREA_LABEL[g.area] ?? g.area} Â· {toolLabel(g.tool)}
                 </span>
                 <span className="small nowrap fstatus">
                   {Object.entries(st)
                     .map(([k, n]) => `${n} ${STATUS_LABEL[k].toLowerCase()}`)
-                    .join(" · ")}
+                    .join(" Â· ")}
                 </span>
-                <span className="chev">{isOpen ? "▾" : "▸"}</span>
+                <span className="chev">{isOpen ? "â¾" : "â¸"}</span>
               </button>
               {isOpen && (
                 <div className="fgroup-body">
@@ -1381,7 +1390,7 @@ function FindingsTab(props: { scanId: string; initial: Record<string, string | b
                           <td className="small detail-cell">
                             {detailOf(f.title, g.title)}
                             <button className="linklike small" style={{ display: "block", marginTop: 2 }} onClick={() => openDetail(f.id)}>
-                              Details, references &amp; raw ›
+                              Details, references &amp; raw âº
                             </button>
                           </td>
                           <td className="small mono">
@@ -1476,7 +1485,7 @@ function TriageTab(props: { scanId: string; initial: Record<string, string | boo
       .filter((h) => !ql || h.host.includes(ql))
       .sort((a, b) => b.issues - a.issues || Number(b.is_live) - Number(a.is_live) || a.host.localeCompare(b.host));
   }, [hosts, show, q, liveOnly]);
-  if (!hosts) return <Empty>Loading…</Empty>;
+  if (!hosts) return <Empty>Loadingâ¦</Empty>;
 
   const save = async (hs: string[], body: { decision?: string | null; note?: string }) => {
     try {
@@ -1510,7 +1519,7 @@ function TriageTab(props: { scanId: string; initial: Record<string, string | boo
     <div className="stack">
       <p className="muted small">
         Hosts in scope that aren't in your CMDB. Decide what each one is: anything left undecided counts as an unknown asset (amber). "Add to CMDB"
-        records a host as known for future scans. Each undecided host carries an auto-suggested category from the scan evidence — confirm or override it.
+        records a host as known for future scans. Each undecided host carries an auto-suggested category from the scan evidence â confirm or override it.
       </p>
       {highSug.length > 0 && (
         <div className="suggest-bar">
@@ -1520,7 +1529,7 @@ function TriageTab(props: { scanId: string; initial: Record<string, string | boo
         </div>
       )}
       <div className="toolbar wrap">
-        <input className="search" placeholder="Filter hosts…" value={q} onChange={(e) => setQ(e.target.value)} />
+        <input className="search" placeholder="Filter hostsâ¦" value={q} onChange={(e) => setQ(e.target.value)} />
         <span className="chips">
           {["undecided", ...Object.keys(decisions), "all"].map((k) => (
             <button key={k} className={`chip ${show === k ? "on" : ""}`} onClick={() => setShow(k)}>
@@ -1536,7 +1545,7 @@ function TriageTab(props: { scanId: string; initial: Record<string, string | boo
         <div className="bulkbar">
           <strong>{sel.size} selected</strong>
           <select value={bulk} onChange={(e) => setBulk(e.target.value)} aria-label="Decision for selected">
-            <option value="">Choose a decision…</option>
+            <option value="">Choose a decisionâ¦</option>
             {Object.entries(decisions).map(([k, v]) => (
               <option key={k} value={k}>
                 {v}
@@ -1591,12 +1600,12 @@ function TriageTab(props: { scanId: string; initial: Record<string, string | boo
                 </td>
                 <td>
                   <span className="mono">{h.host}</span>
-                  <div className="muted small">{h.reasons.slice(0, 2).join(" · ")}</div>
+                  <div className="muted small">{h.reasons.slice(0, 2).join(" Â· ")}</div>
                 </td>
                 <td className="small">
                   {h.is_live ? `live${h.http_status ? ` (${h.http_status})` : ""}` : h.group.replace(/_/g, " ")}
-                  {h.third_party ? " · third-party hosted" : ""}
-                  {h.cdn ? " · CDN" : ""}
+                  {h.third_party ? " Â· third-party hosted" : ""}
+                  {h.cdn ? " Â· CDN" : ""}
                 </td>
                 <td>{h.issues ? <Badge tone="warn">{h.issues}</Badge> : ""}</td>
                 <td>
@@ -1609,10 +1618,10 @@ function TriageTab(props: { scanId: string; initial: Record<string, string | boo
                     ))}
                   </select>
                   {!h.decision && h.suggestion && (
-                    <div className="suggest" title={h.suggestion.reasons.join(" · ")}>
+                    <div className="suggest" title={h.suggestion.reasons.join(" Â· ")}>
                       <span className="sg-line">
                         <span className={`sg-dot sg-${h.suggestion.confidence}`} aria-hidden="true" />
-                        <span className="sg-txt">Suggested: <b>{decisions[h.suggestion.decision] ?? h.suggestion.decision}</b> · {h.suggestion.confidence}</span>
+                        <span className="sg-txt">Suggested: <b>{decisions[h.suggestion.decision] ?? h.suggestion.decision}</b> Â· {h.suggestion.confidence}</span>
                         <button className="linklike small sg-accept" onClick={() => save([h.host], { decision: h.suggestion!.decision })}>Accept</button>
                       </span>
                       {h.suggestion.reasons[0] && <span className="sg-why muted">{h.suggestion.reasons[0]}</span>}
@@ -1620,7 +1629,7 @@ function TriageTab(props: { scanId: string; initial: Record<string, string | boo
                   )}
                 </td>
                 <td>
-                  <NoteBox initial={h.note ?? ""} placeholder="Owner, ticket…" onSave={(n) => save([h.host], { note: n })} compact />
+                  <NoteBox initial={h.note ?? ""} placeholder="Owner, ticketâ¦" onSave={(n) => save([h.host], { note: n })} compact />
                 </td>
               </tr>
             ))}
@@ -1687,7 +1696,7 @@ function FilesTab(props: { scanId: string; initial: Record<string, string | bool
         </div>
         {err && <div className="field-error">{err}</div>}
         {!entries ? (
-          <Empty>Loading…</Empty>
+          <Empty>Loadingâ¦</Empty>
         ) : entries.length === 0 ? (
           <Empty>Empty folder.</Empty>
         ) : (
@@ -1698,7 +1707,7 @@ function FilesTab(props: { scanId: string; initial: Record<string, string | bool
                   className={`file-entry ${file?.path === e.path ? "on" : ""}`}
                   onClick={() => (e.dir ? (setPath(e.path), setFile(null)) : setFile(e))}
                 >
-                  <span aria-hidden="true">{e.dir ? "📁" : PREVIEW_IMG.test(e.name) ? "🖼" : "📄"}</span>
+                  <span aria-hidden="true">{e.dir ? "ð" : PREVIEW_IMG.test(e.name) ? "ð¼" : "ð"}</span>
                   <span className="mono fe-name">{e.name}</span>
                   <span className="muted small">{e.dir ? `${e.children} item${e.children === 1 ? "" : "s"}` : fmtSize(e.size)}</span>
                 </button>
@@ -1715,7 +1724,7 @@ function FilesTab(props: { scanId: string; initial: Record<string, string | bool
             <div className="inline">
               <strong className="mono">{file.name}</strong>
               <span className="muted small">
-                {fmtSize(file.size)} · {fmtDate(file.modified)}
+                {fmtSize(file.size)} Â· {fmtDate(file.modified)}
               </span>
               <span className="spacer" />
               <a className="btn btn-secondary btn-sm" href={fileUrl(props.scanId, file.path, true)}>
@@ -1728,7 +1737,7 @@ function FilesTab(props: { scanId: string; initial: Record<string, string | bool
               (file.size ?? 0) > 2 * 1024 * 1024 ? (
                 <p className="muted">Too large to preview here; download it instead.</p>
               ) : (
-                <pre className="preview">{text ?? "Loading…"}</pre>
+                <pre className="preview">{text ?? "Loadingâ¦"}</pre>
               )
             ) : (
               <p className="muted">
@@ -1746,10 +1755,10 @@ function FilesTab(props: { scanId: string; initial: Record<string, string | bool
 const KIND_META: Record<string, { desc: string; audience: string; download?: boolean }> = {
   master: {
     desc: "The full report: executive summary, what changed, every finding with embedded evidence, authoritative references (NVD/KEV/EPSS, CWE, OWASP, NIST 800-53) and remediation, full kill-chain attack paths, and appendices (CVE register, asset inventory, agent surface, email & brand, framework coverage, evidence index).",
-    audience: "Board → engineering (one document)",
+    audience: "Board â engineering (one document)",
   },
   "share-zip": {
-    desc: "The full report, redacted (host names and IPs pseudonymised to asset-01 / ip-07), plus a README — zipped so it's safe to send to a vendor, insurer or the board. CVE ids, severities and all mappings are kept.",
+    desc: "The full report, redacted (host names and IPs pseudonymised to asset-01 / ip-07), plus a README â zipped so it's safe to send to a vendor, insurer or the board. CVE ids, severities and all mappings are kept.",
     audience: "Vendors / insurers / board",
     download: true,
   },
@@ -1786,7 +1795,7 @@ function ReportsTab(props: { scanId: string }) {
         } catch {
           /* non-JSON */
         }
-        toast(msg.includes("typst") ? "PDF engine unavailable in this build — rebuild the image (make build) to enable reports." : msg, "bad");
+        toast(msg.includes("typst") ? "PDF engine unavailable in this build â rebuild the image (make build) to enable reports." : msg, "bad");
         return;
       }
       const blob = await res.blob();
@@ -1835,13 +1844,13 @@ function ReportsTab(props: { scanId: string }) {
 
       <Card title="What this report will contain">
         {!prev ? (
-          <Empty>Loading…</Empty>
+          <Empty>Loadingâ¦</Empty>
         ) : (
           <div className="stack">
             <div className="toolbar wrap">
               <span className="small muted">
-                {prev.root_domain} · {prev.rag.toUpperCase()}
-                {prev.against && prev.against.finished_at ? ` · compared with the scan from ${fmtDate(prev.against.finished_at)}` : " · no previous scan to compare"}
+                {prev.root_domain} Â· {prev.rag.toUpperCase()}
+                {prev.against && prev.against.finished_at ? ` Â· compared with the scan from ${fmtDate(prev.against.finished_at)}` : " Â· no previous scan to compare"}
               </span>
             </div>
             <ul className="report-contents">
@@ -1851,11 +1860,11 @@ function ReportsTab(props: { scanId: string }) {
             </ul>
             <label className={`report-redact ${forcedRedact ? "muted" : ""}`}>
               <input type="checkbox" checked={forcedRedact || redact} disabled={forcedRedact} onChange={(e) => setRedact(e.target.checked)} />{" "}
-              Redact host names and IPs (pseudonyms like asset-01, ip-07){forcedRedact ? " — always on for the share pack" : ""}
+              Redact host names and IPs (pseudonyms like asset-01, ip-07){forcedRedact ? " â always on for the share pack" : ""}
             </label>
             <div className="toolbar">
               <Button kind="primary" onClick={generate} disabled={busy}>
-                {busy ? "Generating…" : KIND_META[kind]?.download ? "Generate & download zip" : "Generate PDF"}
+                {busy ? "Generatingâ¦" : KIND_META[kind]?.download ? "Generate & download zip" : "Generate PDF"}
               </Button>
               <span className="small muted">Opens in a new tab. Saved under the scan's run folder (reports/).</span>
             </div>
@@ -1931,7 +1940,7 @@ function useMediaQuery(query: string): boolean {
 }
 
 function entityLabel(e: Entity): string {
-  if (e.kind === "host") return e.id.length > 28 ? e.id.slice(0, 27) + "…" : e.id;
+  if (e.kind === "host") return e.id.length > 28 ? e.id.slice(0, 27) + "â¦" : e.id;
   if (e.kind === "path") return "attack path";
   if (e.kind === "more") return "more issues";
   if (e.kind === "tech") return e.id;
@@ -1963,16 +1972,16 @@ function EntityDrawer(props: {
       <aside className="drawer" role="dialog" aria-label="Detail">
         <div className="drawer-head">
           {props.stack.length > 1 && (
-            <button className="linklike" onClick={props.onBack}>‹ Back</button>
+            <button className="linklike" onClick={props.onBack}>â¹ Back</button>
           )}
           <span className="drawer-crumbs">
             {props.stack.map((e, i) => (
               <span key={i} className={i === props.stack.length - 1 ? "cur" : undefined}>
-                {i > 0 ? " › " : ""}{entityLabel(e)}
+                {i > 0 ? " âº " : ""}{entityLabel(e)}
               </span>
             ))}
           </span>
-          <button className="drawer-close" onClick={props.onClose} aria-label="Close">×</button>
+          <button className="drawer-close" onClick={props.onClose} aria-label="Close">Ã</button>
         </div>
         <div className="drawer-body">
           {top.kind === "finding" && <FindingBody scanId={props.scanId} id={Number(top.id)} go={props.go} onEntity={props.onEntity} />}
@@ -1992,7 +2001,7 @@ function EntityDrawer(props: {
 function FindingBody(props: { scanId: string; id: number; go: (l: NavLink) => void; onEntity: (kind: EntityKind, id: string | number) => void }) {
   const { d, err } = useFindingDetail(props.scanId, props.id);
   if (err) return <Empty>Couldn't load this finding.</Empty>;
-  if (!d) return <Empty>Loading…</Empty>;
+  if (!d) return <Empty>Loadingâ¦</Empty>;
   return <FindingDetailView d={d} scanId={props.scanId} go={props.go} onEntity={props.onEntity} />;
 }
 
@@ -2010,14 +2019,14 @@ function StepDetailView(props: { scanId: string; id: string; go: (l: NavLink) =>
   const st = p?.steps[idx];
   const fid = st?.evidence.finding_id ?? null;
   const { d: fd } = useFindingDetail(props.scanId, fid);
-  if (!paths || !assets) return <Empty>Loading…</Empty>;
+  if (!paths || !assets) return <Empty>Loadingâ¦</Empty>;
   if (!p || !st) return <Empty>Step not found.</Empty>;
   const hosts = st.evidence.hosts ?? (st.evidence.host ? [st.evidence.host] : []);
   const others = p.nodes.filter((n) => !hosts.includes(n));
   const assetOf = (h: string) => assets.find((a) => a.host === h);
   return (
     <div>
-      <div className="dtype">Kill-chain step {idx + 1} of {p.steps.length} · {p.title}</div>
+      <div className="dtype">Kill-chain step {idx + 1} of {p.steps.length} Â· {p.title}</div>
       <div className="dtitle"><Badge tone={SEV_TONE[p.severity]}>{p.severity}</Badge> {st.technique}</div>
       <div className="dsec"><p style={{ marginTop: 4 }}>{st.description}</p></div>
       {(st.mitre_links?.length || st.mitre.length) ? (
@@ -2030,12 +2039,12 @@ function StepDetailView(props: { scanId: string; id: string; go: (l: NavLink) =>
             <div key={h} className="step-host">
               <button className="ev-loc mono linklike" onClick={() => props.onEntity("host", h)} title="Open host">{h}</button>
               <div className="kv step-kv">
-                <div className="k">IPs</div><div className="mono small">{a && a.ips.length ? a.ips.join(", ") : "—"}</div>
+                <div className="k">IPs</div><div className="mono small">{a && a.ips.length ? a.ips.join(", ") : "â"}</div>
                 <div className="k">Open ports</div>
                 <div className="inline wrap">{a && a.ports.length ? a.ports.map((pt) => (
                   <button key={pt} className={"chip mono" + (a.risky_ports.includes(pt) ? " sev-high" : "")} onClick={() => props.onEntity("port", pt)} title="Open port">{pt}</button>
                 )) : <span className="muted small">none observed</span>}</div>
-                <div className="k">Tech</div><div className="small">{a && a.tech.length ? a.tech.join(", ") : "—"}</div>
+                <div className="k">Tech</div><div className="small">{a && a.tech.length ? a.tech.join(", ") : "â"}</div>
               </div>
             </div>
           ); })}
@@ -2044,7 +2053,7 @@ function StepDetailView(props: { scanId: string; id: string; go: (l: NavLink) =>
       {fid != null && (
         <div className="dsec">
           <h4>Linked finding</h4>
-          {!fd ? <p className="muted small">Loading finding…</p> : (
+          {!fd ? <p className="muted small">Loading findingâ¦</p> : (
             <div>
               <button className="reflink linklike" style={{ textAlign: "left" }} onClick={() => props.onEntity("finding", fid)} title="Open the full finding">
                 <span className="rk">{fd.severity}</span><span>{fd.group}</span>
@@ -2069,7 +2078,7 @@ function StepDetailView(props: { scanId: string; id: string; go: (l: NavLink) =>
           ))}</div>
         </div>
       )}
-      <div className="dsec"><Button small kind="secondary" onClick={() => props.onEntity("path", pathId)}>‹ Back to the full kill chain</Button></div>
+      <div className="dsec"><Button small kind="secondary" onClick={() => props.onEntity("path", pathId)}>â¹ Back to the full kill chain</Button></div>
     </div>
   );
 }
@@ -2078,14 +2087,14 @@ function StepDetailView(props: { scanId: string; id: string; go: (l: NavLink) =>
 function tagChip(tag: string, refs?: { tag: string; label: string; url: string }[]) {
   const ref = refs && refs.find((r) => r.tag === tag);
   if (!ref) return <span key={tag} className="chip chip-agent">{tag}</span>;
-  return <a key={tag} className="chip chip-agent chip-link" href={ref.url} target="_blank" rel="noreferrer" title={ref.label}>{tag} ↗</a>;
+  return <a key={tag} className="chip chip-agent chip-link" href={ref.url} target="_blank" rel="noreferrer" title={ref.label}>{tag} â</a>;
 }
 
 // likelihood chip -> opens the finding that supplied the observed evidence, when a step carries one
 function likelihoodChip(p: AttackPath, onEntity: (kind: EntityKind, id: string | number) => void) {
   const fid = p.steps.map((s) => s.evidence && s.evidence.finding_id).find((x) => x != null);
   if (fid == null) return <span className="chip">{p.likelihood}</span>;
-  return <button className="chip chip-link" onClick={() => onEntity("finding", fid as number)} title="Open the observed evidence">{p.likelihood} ›</button>;
+  return <button className="chip chip-link" onClick={() => onEntity("finding", fid as number)} title="Open the observed evidence">{p.likelihood} âº</button>;
 }
 
 function PathDetailView(props: { scanId: string; id: string; go: (l: NavLink) => void; onEntity: (kind: EntityKind, id: string | number) => void }) {
@@ -2093,12 +2102,12 @@ function PathDetailView(props: { scanId: string; id: string; go: (l: NavLink) =>
   useEffect(() => {
     api<AttackPathsResponse>(`/api/scans/${props.scanId}/attack-paths`).then((r) => setPaths(r.paths)).catch(() => setPaths([]));
   }, [props.scanId]);
-  if (!paths) return <Empty>Loading…</Empty>;
+  if (!paths) return <Empty>Loadingâ¦</Empty>;
   const p = paths.find((x) => x.id === props.id);
   if (!p) return <Empty>Attack path not found.</Empty>;
   return (
     <div>
-      <div className="dtype">Attack path · {CAT_LABEL[p.category] ?? p.category}</div>
+      <div className="dtype">Attack path Â· {CAT_LABEL[p.category] ?? p.category}</div>
       <div className="dtitle"><Badge tone={SEV_TONE[p.severity]}>{p.severity}</Badge> {p.title}</div>
       <div className="inline wrap small" style={{ marginTop: 6 }}>
         {likelihoodChip(p, props.onEntity)}
@@ -2123,7 +2132,7 @@ function PathDetailView(props: { scanId: string; id: string; go: (l: NavLink) =>
         <h4>Kill chain</h4>
         <div className={`kc sev-${SEV_TONE[p.severity]}`}>
           <div className="kc-stage kc-cap">
-            <div className="kc-marker kc-fill">◢</div>
+            <div className="kc-marker kc-fill">â¢</div>
             <div className="kc-content"><div className="kc-stage-title">Exposure</div><div className="kc-sub muted">the internet-facing weakness</div></div>
           </div>
           {p.steps.map((st, i) => {
@@ -2135,7 +2144,7 @@ function PathDetailView(props: { scanId: string; id: string; go: (l: NavLink) =>
                      onClick={() => props.onEntity("step", `${p.id}::${i}`)}
                      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); props.onEntity("step", `${p.id}::${i}`); } }}
                      title="Drill into this step">
-                  <div className="kc-stage-title">{st.technique}<span className="kc-drill"> ›</span></div>
+                  <div className="kc-stage-title">{st.technique}<span className="kc-drill"> âº</span></div>
                   <div className="kc-desc">{st.description}</div>
                   <div className="kc-chips" onClick={(e) => e.stopPropagation()}>
                     {mitreChips(st.mitre_links, st.mitre)}
@@ -2143,7 +2152,7 @@ function PathDetailView(props: { scanId: string; id: string; go: (l: NavLink) =>
                       <button key={h} className="chip mono" onClick={() => props.onEntity("host", h)} title="Open host">{h}</button>
                     ))}
                     {st.evidence.finding_id != null && (
-                      <button className="chip" onClick={() => props.onEntity("finding", st.evidence.finding_id as number)} title="Open the finding">View finding ›</button>
+                      <button className="chip" onClick={() => props.onEntity("finding", st.evidence.finding_id as number)} title="Open the finding">View finding âº</button>
                     )}
                   </div>
                 </div>
@@ -2151,7 +2160,7 @@ function PathDetailView(props: { scanId: string; id: string; go: (l: NavLink) =>
             );
           })}
           <div className="kc-stage kc-cap">
-            <div className="kc-marker kc-fill kc-target">◉</div>
+            <div className="kc-marker kc-fill kc-target">â</div>
             <div className="kc-content"><div className="kc-stage-title">Impact</div><div className="kc-sub muted">{p.severity === "critical" || p.severity === "high" ? "high-severity business impact" : "business impact"}</div></div>
           </div>
         </div>
@@ -2178,18 +2187,18 @@ function DnsTab(props: { scanId: string }) {
   useEffect(() => {
     api<DnsResponse>(`/api/scans/${props.scanId}/dns`).then(setData).catch(() => setData({ records: [], types: {}, total: 0, hosts: [] }));
   }, [props.scanId]);
-  if (!data) return <Empty>Loading…</Empty>;
+  if (!data) return <Empty>Loadingâ¦</Empty>;
   const ql = q.trim().toLowerCase();
   const rows = data.records.filter((d) => (!type || d.rtype === type) && (!ql || d.host.toLowerCase().includes(ql) || d.value.toLowerCase().includes(ql)));
   const types = Object.keys(data.types).sort();
   return (
     <Card title={`DNS records (${data.total})`}>
-      <p className="muted small" style={{ marginTop: 0, marginBottom: 10 }}>Every resolved record across the scan — A/AAAA, CNAME chains, NS/MX delegations, TXT (SPF, DKIM, verification) and CAA.</p>
+      <p className="muted small" style={{ marginTop: 0, marginBottom: 10 }}>Every resolved record across the scan â A/AAAA, CNAME chains, NS/MX delegations, TXT (SPF, DKIM, verification) and CAA.</p>
       <div className="inline wrap" style={{ gap: 8, marginBottom: 10 }}>
-        <input className="search" placeholder="Filter host or value…" value={q} onChange={(e) => setQ(e.target.value)} />
+        <input className="search" placeholder="Filter host or valueâ¦" value={q} onChange={(e) => setQ(e.target.value)} />
         <button className={"chip" + (type === "" ? " chip-on" : "")} onClick={() => setType("")}>All</button>
         {types.map((t) => (
-          <button key={t} className={"chip mono" + (type === t ? " chip-on" : "")} onClick={() => setType(type === t ? "" : t)}>{t} · {data.types[t]}</button>
+          <button key={t} className={"chip mono" + (type === t ? " chip-on" : "")} onClick={() => setType(type === t ? "" : t)}>{t} Â· {data.types[t]}</button>
         ))}
       </div>
       {rows.length === 0 ? (
@@ -2208,7 +2217,7 @@ function DnsTab(props: { scanId: string }) {
           </tbody>
         </table>
       )}
-      {rows.length > 1000 && <p className="muted small">Showing the first 1000 of {rows.length} matching records — narrow with the filter.</p>}
+      {rows.length > 1000 && <p className="muted small">Showing the first 1000 of {rows.length} matching records â narrow with the filter.</p>}
     </Card>
   );
 }
@@ -2226,7 +2235,7 @@ function HostDetailView(props: { scanId: string; id: string; go: (l: NavLink) =>
     api<EndpointsResponse>(`/api/scans/${props.scanId}/endpoints?host=${encodeURIComponent(props.id)}`).then((x) => live && setEps(x)).catch(() => live && setEps(null));
     return () => { live = false; };
   }, [props.scanId, props.id]);
-  if (!assets || !findings) return <Empty>Loading…</Empty>;
+  if (!assets || !findings) return <Empty>Loadingâ¦</Empty>;
   const a = assets.find((x) => x.host === props.id);
   const isIp = /^(\d{1,3}\.){3}\d{1,3}$/.test(props.id) || (props.id.includes(":") && /^[0-9a-f:]+$/i.test(props.id));
   const onIp = !a && isIp ? assets.filter((x) => (x.ips ?? []).includes(props.id)) : [];
@@ -2243,29 +2252,29 @@ function HostDetailView(props: { scanId: string; id: string; go: (l: NavLink) =>
         <div className="dsec">
           <h4>Summary</h4>
           <div className="kv">
-            <div className="k">IP</div><div className="mono">{a.ips.join(", ") || "—"}</div>
-            <div className="k">HTTP status</div><div className="mono">{a.http_status ?? "—"}</div>
+            <div className="k">IP</div><div className="mono">{a.ips.join(", ") || "â"}</div>
+            <div className="k">HTTP status</div><div className="mono">{a.http_status ?? "â"}</div>
             <div className="k">Live</div><div>{a.is_live ? "yes" : "no"}</div>
-            <div className="k">Technologies</div><div>{a.tech.join(", ") || "—"}</div>
-            <div className="k">TLS</div><div>{a.tls_version ?? "—"}{a.tls_expiry ? ` · expires ${a.tls_expiry}` : ""}{a.tls_flags.length ? ` · ${a.tls_flags.join(", ")}` : ""}</div>
+            <div className="k">Technologies</div><div>{a.tech.join(", ") || "â"}</div>
+            <div className="k">TLS</div><div>{a.tls_version ?? "â"}{a.tls_expiry ? ` Â· expires ${a.tls_expiry}` : ""}{a.tls_flags.length ? ` Â· ${a.tls_flags.join(", ")}` : ""}</div>
           </div>
         </div>
       ) : onIp.length > 0 ? (
         <div className="dsec">
           <h4>Resolves for {onIp.length} host{onIp.length === 1 ? "" : "s"}</h4>
-          <p className="muted small" style={{ marginTop: 0 }}>This IP isn't an asset itself — it's the address these in-scope hosts resolve to. Findings below are aggregated across them.</p>
+          <p className="muted small" style={{ marginTop: 0 }}>This IP isn't an asset itself â it's the address these in-scope hosts resolve to. Findings below are aggregated across them.</p>
           <div className="reflist">
             {onIp.map((x) => (
               <button key={x.host} className="reflink linklike" style={{ textAlign: "left" }} onClick={() => props.onEntity("host", x.host)} title="Open host">
                 <span className="mono small">{x.host}</span>
-                {x.is_live && <span className="muted small"> · live</span>}
+                {x.is_live && <span className="muted small"> Â· live</span>}
               </button>
             ))}
           </div>
         </div>
       ) : (
         <p className="muted small">{isIp
-          ? "No in-scope asset resolves to this IP — it was seen only in a finding's evidence (e.g. an exposed service on infrastructure outside the discovered asset set)."
+          ? "No in-scope asset resolves to this IP â it was seen only in a finding's evidence (e.g. an exposed service on infrastructure outside the discovered asset set)."
           : "This host isn't in the asset table (it may be a DNS-only or out-of-scope name referenced by a finding)."}</p>
       )}
       <div className="dsec">
@@ -2304,13 +2313,13 @@ function HostDetailView(props: { scanId: string; id: string; go: (l: NavLink) =>
                   <a key={i} className="reflink linklike mono small" style={{ wordBreak: "break-all" }} href={u} target="_blank" rel="noreferrer" title="Open endpoint">{u}</a>
                 ))}
               </div>
-              {eps.counts.urls > 50 && <p className="muted small">+{eps.counts.urls - 50} more — crawled from historical and passive sources.</p>}
+              {eps.counts.urls > 50 && <p className="muted small">+{eps.counts.urls - 50} more â crawled from historical and passive sources.</p>}
             </>
           )}
         </div>
       )}
       <div className="dsec">
-        <Button small kind="secondary" onClick={() => props.go({ tab: "assets", filter: { q: props.id } })}>Open in Assets ›</Button>
+        <Button small kind="secondary" onClick={() => props.go({ tab: "assets", filter: { q: props.id } })}>Open in Assets âº</Button>
       </div>
     </div>
   );
@@ -2324,24 +2333,24 @@ function FindingPane(props: { scanId: string; id: number; go: (l: NavLink) => vo
       <div className="triage-pane-head">
         <span className="dtype">Detail</span>
         <button className="drawer-close" onClick={props.onClose} aria-label="Close detail">
-          ×
+          Ã
         </button>
       </div>
       <div className="triage-pane-body">
-        {err ? <Empty>Couldn't load this finding.</Empty> : !d ? <Empty>Loading…</Empty> : <FindingDetailView d={d} scanId={props.scanId} go={props.go} onEntity={props.onEntity} />}
+        {err ? <Empty>Couldn't load this finding.</Empty> : !d ? <Empty>Loadingâ¦</Empty> : <FindingDetailView d={d} scanId={props.scanId} go={props.go} onEntity={props.onEntity} />}
       </div>
     </aside>
   );
 }
 
 // the issues collapsed off the treemap, as a worst-first list (filtered to exactly the tail), each
-// drilling into its finding — the "+N more" tile opens this, with a breadcrumb back to the overview
+// drilling into its finding â the "+N more" tile opens this, with a breadcrumb back to the overview
 function MoreView(props: { scanId: string; minSev: number; onEntity: (kind: EntityKind, id: string | number) => void }) {
   const [findings, setFindings] = useState<Finding[] | null>(null);
   useEffect(() => {
     api<{ findings: Finding[] }>(`/api/scans/${props.scanId}/findings`).then((r) => setFindings(r.findings)).catch(() => setFindings([]));
   }, [props.scanId]);
-  if (!findings) return <Empty>Loading…</Empty>;
+  if (!findings) return <Empty>Loadingâ¦</Empty>;
   const { tail } = rankIssues(aggregateIssues(findings), props.minSev, SMAP_CAP);
   return (
     <div>
@@ -2353,7 +2362,7 @@ function MoreView(props: { scanId: string; minSev: number; onEntity: (kind: Enti
           {tail.map((i) => (
             <button key={i.fid} className="reflink linklike" style={{ textAlign: "left" }} onClick={() => props.onEntity("finding", i.fid)} title="Open finding">
               <span className="rk">{i.severity}</span>
-              <span>{i.title} <span className="muted small">· {i.count} host{i.count === 1 ? "" : "s"}</span></span>
+              <span>{i.title} <span className="muted small">Â· {i.count} host{i.count === 1 ? "" : "s"}</span></span>
             </button>
           ))}
         </div>
@@ -2362,13 +2371,13 @@ function MoreView(props: { scanId: string; minSev: number; onEntity: (kind: Enti
   );
 }
 
-// the detail that distinguishes one instance of a grouped finding — the lookalike domain in
-// "Registered lookalike …: riro.com", else the affected host, else the finding title
+// the detail that distinguishes one instance of a grouped finding â the lookalike domain in
+// "Registered lookalike â¦: riro.com", else the affected host, else the finding title
 function memberLabel(m: { title: string; host: string | null }, group: string): string {
   const t = m.title || "";
   if (t.includes(": ")) {
     const tail = t.slice(t.lastIndexOf(": ") + 2).trim();
-    // only a single token (a domain/identifier, e.g. "riro.com") distinguishes the instance — a
+    // only a single token (a domain/identifier, e.g. "riro.com") distinguishes the instance â a
     // descriptive clause like "the domain can be spoofed" does not, so fall back to the host there
     if (tail && tail !== t && !/\s/.test(tail)) return tail;
   }
@@ -2391,16 +2400,16 @@ function ExposedList(props: { assets: Asset[]; onEntity: (kind: EntityKind, id: 
       {rows.map((r) => {
         const vuln = r.hosts.filter((h) => sevMap[h] === "critical" || sevMap[h] === "high").length;
         return (
-          <button key={r.port} className={`exposed-row${r.risky ? " risky" : ""}${vuln ? " has-vuln" : ""}`} onClick={() => props.onEntity("port", r.port)} title={`${r.count} host${r.count === 1 ? "" : "s"} expose port ${r.port}${vuln ? ` · ${vuln} with high/critical findings` : ""}`}>
+          <button key={r.port} className={`exposed-row${r.risky ? " risky" : ""}${vuln ? " has-vuln" : ""}`} onClick={() => props.onEntity("port", r.port)} title={`${r.count} host${r.count === 1 ? "" : "s"} expose port ${r.port}${vuln ? ` Â· ${vuln} with high/critical findings` : ""}`}>
             <span className="exposed-port mono">{r.port}</span>
             <span className="exposed-svc">
-              {r.service || (r.web ? "web" : "—")}
+              {r.service || (r.web ? "web" : "â")}
               {r.risky && <span className="exposed-flag">risky</span>}
-              {vuln > 0 && <span className="exposed-vuln">⚠ {vuln}</span>}
+              {vuln > 0 && <span className="exposed-vuln">â  {vuln}</span>}
             </span>
             <span className="exposed-track"><span className={`exposed-fill${r.risky || vuln ? " risky" : r.web ? " web" : ""}`} style={{ width: `${Math.round((r.count / max) * 100)}%` }} /></span>
             <span className="exposed-n small muted">{r.count}</span>
-            <span className="exposed-chev">›</span>
+            <span className="exposed-chev">âº</span>
           </button>
         );
       })}
@@ -2409,14 +2418,14 @@ function ExposedList(props: { assets: Asset[]; onEntity: (kind: EntityKind, id: 
 }
 
 function ExposedServices(props: { assets: Asset[] | null; onEntity: (kind: EntityKind, id: string | number) => void }) {
-  if (props.assets === null) return <Card title="Exposed services"><Empty>Loading…</Empty></Card>;
+  if (props.assets === null) return <Card title="Exposed services"><Empty>Loadingâ¦</Empty></Card>;
   const rows = portGroups(props.assets);
   if (rows.length === 0) return null;
   const risky = rows.filter((r) => r.risky);
   const nonWeb = rows.filter((r) => !r.web);
   return (
-    <Card title="Exposed services" actions={<span className="muted small">{risky.length} risky · {nonWeb.length} non-web ports</span>}>
-      <p className="muted small" style={{ marginTop: 0 }}>Open ports observed across your assets — risky services first. Click a port to see which hosts expose it.</p>
+    <Card title="Exposed services" actions={<span className="muted small">{risky.length} risky Â· {nonWeb.length} non-web ports</span>}>
+      <p className="muted small" style={{ marginTop: 0 }}>Open ports observed across your assets â risky services first. Click a port to see which hosts expose it.</p>
       <ExposedList assets={props.assets} onEntity={props.onEntity} />
     </Card>
   );
@@ -2427,7 +2436,7 @@ function ExposedDrawer(props: { scanId: string; onEntity: (kind: EntityKind, id:
   useEffect(() => {
     api<{ assets: Asset[] }>(`/api/scans/${props.scanId}/assets`).then((r) => setAssets(r.assets)).catch(() => setAssets([]));
   }, [props.scanId]);
-  if (!assets) return <Empty>Loading…</Empty>;
+  if (!assets) return <Empty>Loadingâ¦</Empty>;
   return (
     <div>
       <div className="dtype">Attack surface</div>
@@ -2443,7 +2452,7 @@ function PortView(props: { scanId: string; port: number; onEntity: (kind: Entity
   useEffect(() => {
     api<{ assets: Asset[] }>(`/api/scans/${props.scanId}/assets`).then((r) => setAssets(r.assets)).catch(() => setAssets([]));
   }, [props.scanId]);
-  if (!assets) return <Empty>Loading…</Empty>;
+  if (!assets) return <Empty>Loadingâ¦</Empty>;
   const hosts = assets
     .filter((a) => a.ports.includes(props.port))
     .map((a) => ({ a, sev: hostSeverity(a) }))
@@ -2456,19 +2465,19 @@ function PortView(props: { scanId: string; port: number; onEntity: (kind: Entity
       <div className="dtitle"><span className="mono">{props.port}</span> {PORT_SVC[props.port] || ""}{risky && <span className="exposed-flag" style={{ marginLeft: 8 }}>risky</span>}</div>
       <p className="muted small" style={{ marginTop: 4 }}>
         {hosts.length} host{hosts.length === 1 ? "" : "s"} expose this port{atRisk ? `, ${atRisk} with high/critical findings` : ""}.
-        {risky ? " Internet-exposed management/data services are prime targets — put them behind a VPN/ZTNA or IP allowlist." : ""}
+        {risky ? " Internet-exposed management/data services are prime targets â put them behind a VPN/ZTNA or IP allowlist." : ""}
       </p>
       <div className="dsec">
-        <h4>Hosts ({hosts.length}) — most at risk first</h4>
+        <h4>Hosts ({hosts.length}) â most at risk first</h4>
         <div className="reflist">
           {hosts.slice(0, 80).map(({ a, sev }) => (
             <button key={a.host} className="reflink linklike" style={{ textAlign: "left" }} onClick={() => props.onEntity("host", a.host)} title="Open host">
               {sev ? <span className={`sg-dot sg-${sev === "critical" || sev === "high" ? "high" : sev === "medium" ? "medium" : "low"}`} aria-hidden="true" /> : <span className="sg-dot" style={{ background: "var(--border2, var(--border))" }} />}
               <span className="mono small">{a.host}</span>
-              {a.cdn ? <span className="muted small"> · CDN</span> : a.edge?.cloud ? <span className="muted small"> · {a.edge.cloud}</span> : null}
+              {a.cdn ? <span className="muted small"> Â· CDN</span> : a.edge?.cloud ? <span className="muted small"> Â· {a.edge.cloud}</span> : null}
             </button>
           ))}
-          {hosts.length > 80 && <span className="muted small">…and {hosts.length - 80} more</span>}
+          {hosts.length > 80 && <span className="muted small">â¦and {hosts.length - 80} more</span>}
         </div>
       </div>
     </div>
@@ -2476,14 +2485,14 @@ function PortView(props: { scanId: string; port: number; onEntity: (kind: Entity
 }
 
 // drill into one technology: the hosts running it (with the version string seen), and the open issues
-// on those hosts — so you can see what's affected and how it relates to findings/CVEs
+// on those hosts â so you can see what's affected and how it relates to findings/CVEs
 function EolRow(props: { v: string; e: EolInfo }) {
   const { e } = props;
   let tone = "muted", label = "";
-  if (e.status === "current") { tone = "good"; label = `Up to date — latest is ${e.latest_version ?? "the same"}`; }
-  else if (e.status === "outdated_patch") { tone = "warn"; label = `Patch behind — latest in this line is ${e.cycle_latest ?? e.latest_version}`; }
-  else if (e.status === "outdated") { tone = "warn"; label = `${e.cycles_behind} release line${e.cycles_behind === 1 ? "" : "s"} behind — latest is ${e.latest_version}`; }
-  else if (e.status === "eol") { tone = "bad"; label = `End of life${e.eol_date ? ` since ${e.eol_date}` : ""}${e.eol_days_ago ? ` (${Math.round(e.eol_days_ago / 30)} months ago)` : ""} — upgrade to ${e.latest_version}`; }
+  if (e.status === "current") { tone = "good"; label = `Up to date â latest is ${e.latest_version ?? "the same"}`; }
+  else if (e.status === "outdated_patch") { tone = "warn"; label = `Patch behind â latest in this line is ${e.cycle_latest ?? e.latest_version}`; }
+  else if (e.status === "outdated") { tone = "warn"; label = `${e.cycles_behind} release line${e.cycles_behind === 1 ? "" : "s"} behind â latest is ${e.latest_version}`; }
+  else if (e.status === "eol") { tone = "bad"; label = `End of life${e.eol_date ? ` since ${e.eol_date}` : ""}${e.eol_days_ago ? ` (${Math.round(e.eol_days_ago / 30)} months ago)` : ""} â upgrade to ${e.latest_version}`; }
   else if (e.status === "untracked") { tone = "muted"; label = "Not tracked by endoflife.date"; }
   else if (e.status === "unavailable") { tone = "muted"; label = "Couldn't reach endoflife.date"; }
   else { tone = "muted"; label = "Version not matched to a known release line"; }
@@ -2519,7 +2528,7 @@ function TechView(props: { scanId: string; tech: string; go: (l: NavLink) => voi
       .then((rs) => { if (!live) return; const m: Record<string, EolInfo> = {}; for (const x of rs) if (x) m[x[0]] = x[1]; setEol(m); });
     return () => { live = false; };
   }, [props.scanId, props.tech, assets]);
-  if (!assets || !findings) return <Empty>Loading…</Empty>;
+  if (!assets || !findings) return <Empty>Loadingâ¦</Empty>;
   const tl = props.tech.toLowerCase();
   const match = (ts: string) => ts.split(" ")[0].toLowerCase() === tl || ts.toLowerCase().startsWith(tl);
   // host -> the version detected (or null), plus the host's worst finding severity
@@ -2539,7 +2548,7 @@ function TechView(props: { scanId: string; tech: string; go: (l: NavLink) => voi
   for (const a of assets) for (const d of a.tech_detail ?? []) {
     if ((d.name.toLowerCase() === tl || d.name.toLowerCase().startsWith(tl)) && d.version && d.cve_url) verUrl[d.version] = d.cve_url;
   }
-  // vulnerabilities (CVE/KEV) on the hosts running this tech — the real "is it out of date / exploitable" signal
+  // vulnerabilities (CVE/KEV) on the hosts running this tech â the real "is it out of date / exploitable" signal
   const onHosts = findings.filter((f) => f.host && hostSet.has(f.host) && f.status !== "false_positive");
   const cves = onHosts.filter((f) => cveId(f.title)).sort((a, b) => Number(isKev(b)) - Number(isKev(a)) || SEVS.indexOf(a.severity) - SEVS.indexOf(b.severity));
   const seen = new Set<string>();
@@ -2549,13 +2558,13 @@ function TechView(props: { scanId: string; tech: string; go: (l: NavLink) => voi
       <div className="dtype">Technology</div>
       <div className="dtitle">{props.tech}</div>
       <p className="muted small" style={{ marginTop: 4 }}>
-        Seen on {hits.length} host{hits.length === 1 ? "" : "s"} · {versions.length ? `${versions.length} version${versions.length === 1 ? "" : "s"} detected` : "no version detected"}
-        {cves.length ? ` · ${cves.length} CVE finding${cves.length === 1 ? "" : "s"}` : ""}.
+        Seen on {hits.length} host{hits.length === 1 ? "" : "s"} Â· {versions.length ? `${versions.length} version${versions.length === 1 ? "" : "s"} detected` : "no version detected"}
+        {cves.length ? ` Â· ${cves.length} CVE finding${cves.length === 1 ? "" : "s"}` : ""}.
       </p>
       <div className="dsec">
         <h4>Versions detected</h4>
         {versions.length > 0 ? (
-          <div className="inline wrap">{versions.slice(0, 30).map((v) => verUrl[v] ? (<a key={v} className="chip mono linklike" href={verUrl[v]} target="_blank" rel="noreferrer" title={`Search NVD for ${props.tech} ${v}`}>{v} · CVEs ↗</a>) : (<span key={v} className="chip mono">{v}</span>))}</div>
+          <div className="inline wrap">{versions.slice(0, 30).map((v) => verUrl[v] ? (<a key={v} className="chip mono linklike" href={verUrl[v]} target="_blank" rel="noreferrer" title={`Search NVD for ${props.tech} ${v}`}>{v} Â· CVEs â</a>) : (<span key={v} className="chip mono">{v}</span>))}</div>
         ) : (
           <p className="muted small">No version string was exposed by passive fingerprinting{unversioned ? ` on ${unversioned} host${unversioned === 1 ? "" : "s"}` : ""}. An authenticated or active check would be needed to confirm the exact build.</p>
         )}
@@ -2580,7 +2589,7 @@ function TechView(props: { scanId: string; tech: string; go: (l: NavLink) => voi
                 <span>
                   <span className="mono">{cveId(f.title)}</span>
                   {isKev(f) && <span className="exposed-flag" style={{ marginLeft: 6 }}>KEV</span>}
-                  <span className="muted small"> · {f.host}</span>
+                  <span className="muted small"> Â· {f.host}</span>
                 </span>
               </button>
             ))}
@@ -2594,10 +2603,10 @@ function TechView(props: { scanId: string; tech: string; go: (l: NavLink) => voi
             <button key={x.host} className="reflink linklike" style={{ textAlign: "left" }} onClick={() => props.onEntity("host", x.host)} title="Open host">
               {x.sev ? <span className={`sg-dot sg-${x.sev === "critical" || x.sev === "high" ? "high" : x.sev === "medium" ? "medium" : "low"}`} aria-hidden="true" /> : <span className="sg-dot" style={{ background: "var(--border2, var(--border))" }} />}
               <span className="mono small">{x.host}</span>
-              <span className="muted small">{x.version ? ` · v${x.version}` : " · version n/a"}</span>
+              <span className="muted small">{x.version ? ` Â· v${x.version}` : " Â· version n/a"}</span>
             </button>
           ))}
-          {hits.length > 60 && <span className="muted small">…and {hits.length - 60} more</span>}
+          {hits.length > 60 && <span className="muted small">â¦and {hits.length - 60} more</span>}
         </div>
       </div>
       {other.length > 0 && (
@@ -2607,7 +2616,7 @@ function TechView(props: { scanId: string; tech: string; go: (l: NavLink) => voi
             {other.slice(0, 20).map((f) => (
               <button key={f.id} className="reflink linklike" style={{ textAlign: "left" }} onClick={() => props.onEntity("finding", f.id)} title="Open finding">
                 <span className="rk">{f.severity}</span>
-                <span>{f.group} <span className="muted small">· {f.host}</span></span>
+                <span>{f.group} <span className="muted small">Â· {f.host}</span></span>
               </button>
             ))}
           </div>
@@ -2621,13 +2630,13 @@ function EvidenceView(props: { scanId: string; ev: FindingEvidence; onEntity: (k
   const { ev } = props;
   const loc = (l?: string) => {
     if (!l) return null;
-    if (/^https?:\/\//i.test(l)) return (<a className="ev-loc mono" href={l} target="_blank" rel="noreferrer" title="Open location">{l} ↗</a>);
+    if (/^https?:\/\//i.test(l)) return (<a className="ev-loc mono" href={l} target="_blank" rel="noreferrer" title="Open location">{l} â</a>);
     const host = l.split(":")[0];
     return (<button className="ev-loc mono linklike" onClick={() => props.onEntity("host", host)} title="Open host">{l}</button>);
   };
   return (
     <div className="ev">
-      {(ev.location || ev.host) && (<div className="ev-where">{ev.location && loc(ev.location)}{ev.locator && <span className="muted small"> · {ev.locator}</span>}{ev.host && (<><span className="muted small"> · on </span><button className="ev-loc mono linklike" onClick={() => props.onEntity("host", ev.host as string)} title="Open resolved host">{ev.host}</button></>)}</div>)}
+      {(ev.location || ev.host) && (<div className="ev-where">{ev.location && loc(ev.location)}{ev.locator && <span className="muted small"> Â· {ev.locator}</span>}{ev.host && (<><span className="muted small"> Â· on </span><button className="ev-loc mono linklike" onClick={() => props.onEntity("host", ev.host as string)} title="Open resolved host">{ev.host}</button></>)}</div>)}
       {ev.observed && <pre className="ev-raw">{ev.observed}</pre>}
       {ev.detail && <p className="muted small ev-detail">{ev.detail}</p>}
       {ev.fields && ev.fields.length > 0 && (
@@ -2640,7 +2649,7 @@ function EvidenceView(props: { scanId: string; ev: FindingEvidence; onEntity: (k
           <div className="muted small ev-insts-h">{ev.instances.length} instances</div>
           {ev.instances.slice(0, 12).map((it, i) => (
             <div className="ev-inst" key={i}>
-              <div className="ev-inst-loc">{loc(it.location)}{it.locator && <span className="muted small"> · {it.locator}</span>}</div>
+              <div className="ev-inst-loc">{loc(it.location)}{it.locator && <span className="muted small"> Â· {it.locator}</span>}</div>
               {it.observed && <div className="ev-inst-obs mono">{it.observed}</div>}
             </div>
           ))}
@@ -2658,7 +2667,7 @@ function FindingDetailView(props: { d: FindingDetail; scanId: string; go: (l: Na
   return (
     <div>
       <div className="dtype">
-        Finding · {AREA_LABEL[d.area] ?? d.area} · {toolLabel(d.tool)}
+        Finding Â· {AREA_LABEL[d.area] ?? d.area} Â· {toolLabel(d.tool)}
       </div>
       <div className="dtitle">
         <Badge tone={SEV_TONE[d.severity]}>{d.severity}</Badge> {d.group}
@@ -2682,7 +2691,7 @@ function FindingDetailView(props: { d: FindingDetail; scanId: string; go: (l: Na
                 {h}
               </button>
             ))}
-            {d.hosts.length > 24 && <span className="muted small">…and {d.hosts.length - 24} more</span>}
+            {d.hosts.length > 24 && <span className="muted small">â¦and {d.hosts.length - 24} more</span>}
           </div>
         </div>
       )}
@@ -2710,11 +2719,11 @@ function FindingDetailView(props: { d: FindingDetail; scanId: string; go: (l: Na
         <div className="inline wrap">
           {d.raw.file && (
             <a className="chip" href={fileUrl(props.scanId, d.raw.file)} target="_blank" rel="noreferrer" title="Open the exact artifact this finding came from">
-              View raw artifact: {d.raw.file.split("/").pop()} ↗
+              View raw artifact: {d.raw.file.split("/").pop()} â
             </a>
           )}
           <Button small kind="secondary" onClick={() => props.go(filesLink)}>
-            {d.raw.file || d.raw.files_path ? `Browse ${d.raw.files_path || "run folder"} in Files ›` : "Browse the run folder ›"}
+            {d.raw.file || d.raw.files_path ? `Browse ${d.raw.files_path || "run folder"} in Files âº` : "Browse the run folder âº"}
           </Button>
         </div>
       </div>
@@ -2729,11 +2738,11 @@ function FindingDetailView(props: { d: FindingDetail; scanId: string; go: (l: Na
               return (
                 <button key={m.id} className="reflink linklike" style={{ textAlign: "left" }} onClick={() => props.onEntity("finding", m.id)} title="Open this instance">
                   <span className="rk">{m.severity}</span>
-                  <span><span className="mono small">{label}</span>{secondary ? <span className="muted small"> · {secondary}</span> : null}</span>
+                  <span><span className="mono small">{label}</span>{secondary ? <span className="muted small"> Â· {secondary}</span> : null}</span>
                 </button>
               );
             })}
-            {d.members.length > 60 && <span className="muted small">…and {d.members.length - 60} more</span>}
+            {d.members.length > 60 && <span className="muted small">â¦and {d.members.length - 60} more</span>}
           </div>
         </div>
       )}
@@ -2783,7 +2792,7 @@ function issueWeight(i: { severity: string; count: number }): number {
 type Rect = { x: number; y: number; w: number; h: number };
 type Cell<T> = T & Rect;
 
-// squarified treemap over a W×H box; items carry a numeric `value`
+// squarified treemap over a WÃH box; items carry a numeric `value`
 function squarify<T extends { value: number }>(items: T[], W: number, H: number): Cell<T>[] {
   const nodes = items.map((d) => ({ ...d, area: 0 }));
   const total = nodes.reduce((s, n) => s + n.value, 0) || 1;
@@ -2841,7 +2850,7 @@ function aggregateIssues(findings: Finding[]): Issue[] {
 }
 
 // rank worst-first and split into the tiles to draw (head) and the collapsed tail. Critical/high are
-// NEVER collapsed — they always stay as their own tiles regardless of host count.
+// NEVER collapsed â they always stay as their own tiles regardless of host count.
 function rankIssues(issues: Issue[], minSev: number, cap: number): { head: Issue[]; tail: Issue[] } {
   const filt = issues
     .filter((i) => SEVS.indexOf(i.severity) <= minSev)
@@ -2879,7 +2888,7 @@ function SurfaceMap(props: { scanId: string; findings: Finding[] | null; go: (l:
   }, [head, tail]);
 
   const loading = findings === null || paths === null;
-  if (loading) return <Card title="Surface map"><Empty>Loading…</Empty></Card>;
+  if (loading) return <Card title="Surface map"><Empty>Loadingâ¦</Empty></Card>;
   if (issues.length === 0) return null;
 
   return (
@@ -2910,7 +2919,7 @@ function SurfaceMap(props: { scanId: string; findings: Finding[] | null; go: (l:
         {(["critical", "high", "medium", "low", "info"] as const).map((s) => (
           <span key={s}><i style={{ background: `var(${SEV_SMAP[s][0]})` }} />{s[0].toUpperCase() + s.slice(1)}</span>
         ))}
-        <span className="muted" style={{ marginLeft: "auto" }}>{mode === "tree" ? "Sized by severity × hosts · click a tile to drill in" : "Hosts ↔ the attack paths they enable · click a node"}</span>
+        <span className="muted" style={{ marginLeft: "auto" }}>{mode === "tree" ? "Sized by severity Ã hosts Â· click a tile to drill in" : "Hosts â the attack paths they enable Â· click a node"}</span>
       </div>
     </Card>
   );
@@ -2928,7 +2937,7 @@ function Treemap(props: { issues: Issue[]; onEntity: (kind: EntityKind, id: stri
           <button
             key={c.title}
             className={`smap-cell${c.more ? " smap-more" : ""}`}
-            title={c.more ? `${c.title} — open Findings` : `${c.title} — ${c.count} host${c.count === 1 ? "" : "s"} · ${c.severity}`}
+            title={c.more ? `${c.title} â open Findings` : `${c.title} â ${c.count} host${c.count === 1 ? "" : "s"} Â· ${c.severity}`}
             onClick={() => (c.more ? props.onMore() : props.onEntity("finding", c.fid))}
             style={{
               left: `calc(${(c.x / W) * 100}% + 2px)`, top: `calc(${(c.y / H) * 100}% + 2px)`,
@@ -2938,11 +2947,11 @@ function Treemap(props: { issues: Issue[]; onEntity: (kind: EntityKind, id: stri
           >
             <span className="smap-cn">{c.title}</span>
             {c.more ? (
-              <span className="smap-cnote muted">{c.count} host-hits · open Findings ›</span>
+              <span className="smap-cnote muted">{c.count} host-hits Â· open Findings âº</span>
             ) : big ? (
-              <><span className="smap-cc" style={{ color: `var(${fg})` }}>{c.count}</span><span className="smap-cnote" style={{ color: `var(${fg})` }}>{c.count === 1 ? "host" : "hosts"} · {c.severity}</span></>
+              <><span className="smap-cc" style={{ color: `var(${fg})` }}>{c.count}</span><span className="smap-cnote" style={{ color: `var(${fg})` }}>{c.count === 1 ? "host" : "hosts"} Â· {c.severity}</span></>
             ) : mid ? (
-              <span className="smap-cnote" style={{ color: `var(${fg})` }}>{c.count} · {c.severity}</span>
+              <span className="smap-cnote" style={{ color: `var(${fg})` }}>{c.count} Â· {c.severity}</span>
             ) : null}
           </button>
         );
@@ -2977,13 +2986,13 @@ function AttackGraph(props: { paths: AttackPath[]; onEntity: (kind: EntityKind, 
         {hostSet.map((h, hi) => (
           <g key={h} className="smap-node" onClick={() => props.onEntity("host", h)}>
             <rect x={hx - hw / 2} y={hostY(hi) - 15} width={hw} height={30} rx={7} className="smap-host" />
-            <text x={hx} y={hostY(hi) + 4} textAnchor="middle" className="smap-htext">{h.length > 26 ? h.slice(0, 25) + "…" : h}</text>
+            <text x={hx} y={hostY(hi) + 4} textAnchor="middle" className="smap-htext">{h.length > 26 ? h.slice(0, 25) + "â¦" : h}</text>
           </g>
         ))}
         {paths.map((p, pi) => {
           const on = hover === p.id;
           const bw = on ? Math.min(Math.max(pw, p.title.length * 6.4 + 28), 420) : pw;
-          const label = on ? p.title : (p.title.length > 28 ? p.title.slice(0, 27) + "…" : p.title);
+          const label = on ? p.title : (p.title.length > 28 ? p.title.slice(0, 27) + "â¦" : p.title);
           return (
             <g key={p.id} className={`smap-node${on ? " on" : ""}`} onClick={() => props.onEntity("path", p.id)} onMouseEnter={() => setHover(p.id)} onMouseLeave={() => setHover((v) => (v === p.id ? null : v))}>
               <rect x={px - bw / 2} y={pathY(pi) - 15} width={bw} height={30} rx={7} className="smap-path" style={{ stroke: sevVar(p.severity) }} />

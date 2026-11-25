@@ -616,6 +616,8 @@ fieldset.plain[disabled] .cand input { cursor: not-allowed; }
 .status-strip.rag-green { border-color: color-mix(in srgb, var(--good) 50%, var(--border)); background: color-mix(in srgb, var(--good-bg) 30%, var(--panel)); }
 .status-strip .rag-dot { width: 11px; height: 11px; }
 .status-strip strong { letter-spacing: .04em; }
+.incomplete-banner { border: 1px solid color-mix(in srgb, var(--bad) 55%, var(--border)); background: color-mix(in srgb, var(--bad-bg) 45%, var(--panel)); color: var(--text); border-radius: var(--radius); padding: 10px 14px; font-size: 13px; }
+.incomplete-banner strong { color: var(--bad); }
 .status-sep { color: var(--muted); }
 .status-nums { font-size: 13px; }
 .status-prev { margin-left: auto; }

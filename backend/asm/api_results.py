@@ -514,7 +514,10 @@ def compute_overview(db: DB, sid: str) -> dict:
     risk_weight = lambda g: (SEV_ORDER[g["severity"]], -(10 if g["tool"] in TAKEOVER_TOOLS + RISKY_TOOLS else 0), -len(g["hosts"]))
     top = sorted(groups.values(), key=risk_weight)[:6]
     top = [{**g, "hosts": sorted(g["hosts"]), "link": F(q=g["title"], severity=g["severity"])} for g in top]
+    failed_stages = sorted(k for k, r in stages.items() if r["status"] == "failed")
+    partial = bool(failed_stages) or scan["status"] == "completed_with_errors"
     return {"rag": rag, "reasons": reasons, "values": values, "top_risks": top, "not_collected": not_collected,
+            "partial": partial, "failed_stages": failed_stages,
             "severity": sev, "status": scan["status"], "finished_at": scan["finished_at"],
             "tech": [{"name": _tech_display(e["name"]), "count": e["count"]} for e in tech_top], "agent_hosts": agent_hosts,
             "vuln_matrix": {"matrix": vuln_matrix, "order": list(VCONF_ORDER), "act_now": vuln_act_now}}

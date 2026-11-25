@@ -394,6 +394,8 @@ export interface Overview {
   cards: { key: string; label: string; value: number; previous: number | null; trend: "better" | "worse" | "changed" | null; link: NavLink }[];
   top_risks: { severity: string; title: string; area: string; tool: string; hosts: string[]; link: NavLink; fid?: number }[];
   not_collected: string[];
+  partial?: boolean;
+  failed_stages?: string[];
   severity: Record<string, number>;
   values: Record<string, number>;
   previous: { id: string; rag: string; finished_at: string | null } | null;
