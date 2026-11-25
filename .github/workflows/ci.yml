@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+# Note: the backend test job runs the suite with pip deps only. If any test needs a scanner
+# binary (typst, bbot, zap...) it will surface here — those tests should be made hermetic or
+# moved behind a marker/Docker job. Advisory steps (pip-audit, npm audit, tsc) are non-blocking
+# for now; promote them to gates once the backlog is clear.
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install backend deps
+        run: pip install -r backend/requirements.txt pytest
+      - name: Tests (gate)
+        run: cd backend && python -m pytest -q
+      - name: Dependency audit (advisory)
+        run: pip install pip-audit && pip-audit -r backend/requirements.txt || true
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install frontend deps
+        run: cd frontend && npm install --no-audit --no-fund
+      - name: Typecheck (advisory)
+        run: cd frontend && npx tsc --noEmit || true
+      - name: Build (gate)
+        run: cd frontend && node build.mjs
+      - name: npm audit (advisory)
+        run: cd frontend && npm audit || true
+
+  secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_CONFIG: .gitleaks.toml
