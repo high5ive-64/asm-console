@@ -2,6 +2,20 @@
 
 **A local, single-operator external attack-surface-management app.** Point it at a domain you're authorised to test and it discovers the internet-facing estate, runs a passive / light-touch scan pipeline of best-in-class open-source tools, enriches findings with threat intelligence, models kill-chain attack paths, and produces board-to-engineering reports — all inside one Docker container on your machine, bound to loopback.
 
+<p>
+<img alt="Python" src="https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white">
+<img alt="Starlette" src="https://img.shields.io/badge/Starlette-ASGI-0F172A?style=flat-square">
+<img alt="Uvicorn" src="https://img.shields.io/badge/Uvicorn-499848?style=flat-square">
+<img alt="SQLite" src="https://img.shields.io/badge/SQLite-003B57?style=flat-square&logo=sqlite&logoColor=white">
+<img alt="React 19" src="https://img.shields.io/badge/React_19-20232A?style=flat-square&logo=react&logoColor=61DAFB">
+<img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white">
+<img alt="esbuild" src="https://img.shields.io/badge/esbuild-FFCF00?style=flat-square&logo=esbuild&logoColor=black">
+<img alt="Docker" src="https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white">
+<img alt="Typst" src="https://img.shields.io/badge/Typst-239DAD?style=flat-square&logo=typst&logoColor=white">
+<img alt="GitHub Actions CI" src="https://img.shields.io/badge/GitHub_Actions-2088FF?style=flat-square&logo=githubactions&logoColor=white">
+<img alt="gitleaks" src="https://img.shields.io/badge/gitleaks-secret_scan-DC2626?style=flat-square">
+</p>
+
 > **Status: milestones 1–6 of 7.** Discovery & scope, authorisation, the light-touch pipeline (parallel stages, live view, pause/resume, ZAP host picker), results (overview with RAG, surface map, trends, attack paths, assets, IPs, DNS, findings with embedded evidence, triage, file browser) and reports (a full document plus a redacted share-zip). Next: AI providers (M7).
 
 ## What it does
@@ -180,3 +194,30 @@ make test        # inside the image (all tools present)
 # or bare, with the tools stubbed:
 cd backend && pip install -r requirements.txt pytest && python3 -m pytest -q
 ```
+
+
+## Open-source tools & data sources
+
+Outsider ASM is a thin, safety-focused orchestration layer over established open-source projects and public data sources. Full credit to their authors and maintainers.
+
+**Built with** — [Starlette](https://www.starlette.io/) · [Uvicorn](https://www.uvicorn.org/) · [React](https://react.dev/) · [TypeScript](https://www.typescriptlang.org/) · [esbuild](https://esbuild.github.io/) · [Typst](https://typst.app/) · [cryptography](https://cryptography.io/) · [SQLite](https://www.sqlite.org/)
+
+**Discovery & enumeration** — [BBOT](https://github.com/blacklanternsecurity/bbot) · [crt.sh](https://crt.sh/) (certificate transparency)
+
+**Web & TLS** — [OWASP ZAP](https://www.zaproxy.org/) · [tlsx](https://github.com/projectdiscovery/tlsx) · [testssl.sh](https://github.com/drwetter/testssl.sh) · [gau](https://github.com/lc/gau) · [uro](https://github.com/s0md3v/uro) · [Wappalyzer fingerprints](https://github.com/wappalyzer/wappalyzer)
+
+**DNS & takeover** — [dnsx](https://github.com/projectdiscovery/dnsx) · [DNSReaper](https://github.com/punk-security/dnsReaper) · [cdncheck](https://github.com/projectdiscovery/cdncheck) · [baddns](https://github.com/blacklanternsecurity/baddns)
+
+**Email & brand** — [checkdmarc](https://github.com/domainaware/checkdmarc) · [dnstwist](https://github.com/elceef/dnstwist) · [openSquat](https://github.com/atenreiro/opensquat)
+
+**Cloud inventory** — [cloudlist](https://github.com/projectdiscovery/cloudlist)
+
+**Screenshots & reporting** — [gowitness](https://github.com/sensepost/gowitness) · [geckodriver](https://github.com/mozilla/geckodriver) · [Firefox](https://www.mozilla.org/firefox/) · [Typst](https://github.com/typst/typst)
+
+**Exposure & threat intelligence** — [Shodan InternetDB](https://internetdb.shodan.io/) · [Shodan CVEDB](https://cvedb.shodan.io/) · [LeakIX](https://leakix.net/) · [Netlas](https://netlas.io/) · [urlscan.io](https://urlscan.io/) · [CISA KEV](https://www.cisa.gov/known-exploited-vulnerabilities-catalog) · [FIRST EPSS](https://www.first.org/epss/) · [NVD](https://nvd.nist.gov/) · [endoflife.date](https://endoflife.date/) · [XposedOrNot](https://xposedornot.com/) · [Have I Been Pwned](https://haveibeenpwned.com/)
+
+**Standards & frameworks** — [MITRE ATT&CK](https://attack.mitre.org/) · [MITRE ATLAS](https://atlas.mitre.org/) · [CWE](https://cwe.mitre.org/) · [OWASP Top 10](https://owasp.org/Top10/) · [OWASP LLM Top 10](https://genai.owasp.org/) · [NIST SP 800-53](https://csf.tools/reference/nist-sp-800-53/) · [CVSS](https://www.first.org/cvss/)
+
+**Optional sidecar** — [SpiderFoot](https://github.com/smicallef/spiderfoot)
+
+Optional keyed datasets (bring your own API key): Censys, SecurityTrails, VirusTotal, [Chaos](https://chaos.projectdiscovery.io/), GitHub, WhoisXML.
