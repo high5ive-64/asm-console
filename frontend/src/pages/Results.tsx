@@ -1,5 +1,5 @@
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { api, ApiError, AttackPath, AttackPathsResponse, Asset, ChangeFinding, Changes, DnsResponse, EmailsResponse, EmailCheckResult, EndpointsResponse, EolInfo, FindingDetail, FindingEvidence, GraphSummary, IpRow, IpsResponse, FileEntry, Finding, MitreLink, NavLink, Overview, RefLink, ReportPreview, ResultsTab, Scan, SearchResponse, TriageHost } from "../api";
+import { api, isDemo, ApiError, AttackPath, AttackPathsResponse, Asset, ChangeFinding, Changes, DnsResponse, EmailsResponse, EmailCheckResult, EndpointsResponse, EolInfo, FindingDetail, FindingEvidence, GraphSummary, IpRow, IpsResponse, FileEntry, Finding, MitreLink, NavLink, Overview, RefLink, ReportPreview, ResultsTab, Scan, SearchResponse, TriageHost } from "../api";
 import { Badge, Button, Card, Empty, fmtDate, useToast } from "../components/ui";
 
 const TABS: { key: ResultsTab; label: string }[] = [
@@ -130,7 +130,7 @@ export function Results(props: { scan: Scan }) {
         </Button>
       </div>
       <nav className="tabs" role="tablist">
-        {TABS.map((t) => (
+        {(isDemo() ? TABS.filter((t) => t.key !== "files") : TABS).map((t) => (
           <button
             key={t.key}
             role="tab"
@@ -1859,15 +1859,21 @@ function ReportsTab(props: { scanId: string }) {
               ))}
             </ul>
             <label className={`report-redact ${forcedRedact ? "muted" : ""}`}>
-              <input type="checkbox" checked={forcedRedact || redact} disabled={forcedRedact} onChange={(e) => setRedact(e.target.checked)} />{" "}
+              <input type="checkbox" checked={forcedRedact || redact} disabled={forcedRedact || isDemo()} onChange={(e) => setRedact(e.target.checked)} />{" "}
               Redact host names and IPs (pseudonyms like asset-01, ip-07){forcedRedact ? " — always on for the share pack" : ""}
             </label>
-            <div className="toolbar">
-              <Button kind="primary" onClick={generate} disabled={busy}>
-                {busy ? "Generating…" : KIND_META[kind]?.download ? "Generate & download zip" : "Generate PDF"}
-              </Button>
-              <span className="small muted">Opens in a new tab. Saved under the scan's run folder (reports/).</span>
-            </div>
+            {isDemo() ? (
+              <div className="toolbar">
+                <span className="small muted">Report generation is disabled in the demo. This is a preview of what the full PDF / share pack contains — every host and IP in this snapshot is already pseudonymised (asset-01, ip-07).</span>
+              </div>
+            ) : (
+              <div className="toolbar">
+                <Button kind="primary" onClick={generate} disabled={busy}>
+                  {busy ? "Generating…" : KIND_META[kind]?.download ? "Generate & download zip" : "Generate PDF"}
+                </Button>
+                <span className="small muted">Opens in a new tab. Saved under the scan's run folder (reports/).</span>
+              </div>
+            )}
           </div>
         )}
       </Card>

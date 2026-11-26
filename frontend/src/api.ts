@@ -22,8 +22,48 @@ export function setUnauthorisedHandler(h: Handler) {
   onUnauthorised = h;
 }
 
+// ---- demo mode ---------------------------------------------------------
+// Serves a frozen, redacted snapshot of one scan so the full UI can be shown with no backend
+// (GitHub Pages) or as an in-app "Demo" tab. Only paths under the synthetic "demo" scan id are
+// intercepted, so the live app shell and real scans are never affected.
+export const DEMO_ID = "demo";
+type DemoSnap = { scanId: string; meta: Record<string, unknown>; endpoints: Record<string, unknown> };
+let demo: DemoSnap | null = null;
+let demoStandalone = false;
+export function enableDemo(snap: { scanId: string; meta: Record<string, unknown>; endpoints: Record<string, unknown> }, standalone = false) {
+  demo = { scanId: DEMO_ID, meta: { ...snap.meta, id: DEMO_ID }, endpoints: snap.endpoints };
+  demoStandalone = standalone;
+}
+export function isDemo(): boolean {
+  return demo !== null;
+}
+export function demoScan(): Scan {
+  return demo!.meta as unknown as Scan;
+}
+function demoResolve(path: string, method: string): unknown | undefined {
+  if (!demo) return undefined;
+  if (demoStandalone) {
+    if (path === "/api/auth/status") return { authenticated: true, csrf: null };
+    if (path === "/api/health") return { ok: true };
+    if (path === "/api/about") return {};
+  }
+  const base = `/api/scans/${DEMO_ID}`;
+  if (path === base) return demo.meta;
+  if (path.startsWith(base + "/") || path.startsWith(base + "?")) {
+    if (method !== "GET") return {}; // demo is read-only
+    const key = path.slice(base.length); // "/overview", "/endpoints?host=asset-03", "/findings/12"
+    const hit = demo.endpoints[key];
+    if (hit !== undefined) return hit;
+    if (key.startsWith("/search")) return { q: "", hosts: [], ips: [], findings: [] };
+    return {}; // unknown drill-in -> benign empty
+  }
+  return undefined; // not a demo path -> real fetch
+}
+
 export async function api<T = unknown>(path: string, opts: { method?: string; json?: unknown; body?: BodyInit } = {}): Promise<T> {
   const method = opts.method ?? "GET";
+  const demoHit = demoResolve(path, method);
+  if (demoHit !== undefined) return demoHit as T;
   const headers: Record<string, string> = {};
   if (opts.json !== undefined) headers["content-type"] = "application/json";
   if (method !== "GET" && csrf) headers["x-csrf-token"] = csrf;

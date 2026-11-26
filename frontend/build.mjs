@@ -6,7 +6,7 @@
 // hashed URLs and loads the fresh bundle — it can never serve a stale cached app.js.
 import { build } from "esbuild";
 import { createHash } from "node:crypto";
-import { mkdirSync, writeFileSync, rmSync, readFileSync } from "node:fs";
+import { mkdirSync, writeFileSync, rmSync, readFileSync, copyFileSync } from "node:fs";
 import { basename } from "node:path";
 
 rmSync("dist", { recursive: true, force: true });
@@ -57,4 +57,5 @@ writeFileSync(
 </html>
 `
 );
-console.log(`built dist/ (${jsName}, ${cssName})`);
+copyFileSync("src/demo_snapshot.json", "dist/assets/demo_snapshot.json");
+console.log(`built dist/ (${jsName}, ${cssName}, + demo_snapshot.json)`);

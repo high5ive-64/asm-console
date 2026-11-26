@@ -16,9 +16,13 @@ Built for security teams to review **their own** infrastructure, and for consult
 
 ## Demo
 
-> 🔗 **Live demo (redacted):** _a published snapshot of the latest scan with all host names and IPs pseudonymised_ — link coming once the demo page is wired (see the in-app **Demo** tab, which renders the same redacted snapshot).
+> 🔗 **[Live demo (redacted)](https://high5ive-64.github.io/asm-console/)** — the full results UI running against a frozen, redacted snapshot of a real scan. No backend, nothing sensitive.
 
-The demo shows the real results experience — RAG, surface map, attack paths, findings with evidence — against a public pentest practice target, with identities redacted so nothing sensitive is exposed.
+The demo is the real results experience — RAG verdict, surface map, attack paths / kill chains, technologies and versions, CVE and MITRE ATT&CK/ATLAS mappings, findings with evidence — run against [pentest-ground.com](https://pentest-ground.com), a public penetration-testing practice range. Every host name, IP and email is pseudonymised (`asset-01`, `ip-07`, `email-01`) by the same redactor used for the share pack; standards references (MITRE, CWE, OWASP, NVD, EPSS, CISA KEV) are preserved so the mappings stay clickable. It is a point-in-time export, so report generation and raw-evidence files are disabled.
+
+The same snapshot also powers the in-app **Demo** tab (`/demo`), so you can show the tool without exposing a live scan.
+
+> **Enabling the public link:** the demo is a static build committed under [`docs/`](docs/). In the repo’s **Settings → Pages**, set the source to **Deploy from a branch**, branch `main`, folder `/docs`. (The repository must be public, or on a plan that allows private Pages.) To refresh it after a new scan, re-export the snapshot and rebuild `docs/` with `npm run build:demo`.
 
 ## Architecture
 

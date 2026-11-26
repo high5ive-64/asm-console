@@ -7,4 +7,8 @@ useDefault = true
 description = "Project-known false positives"
 paths = [
   '''docker/versions\.env''',
+  # Generated, reviewed, redacted demo export (public TLS cert material only, no secrets):
+  # host names / IPs / emails are pseudonymised; see tools/export_demo_snapshot.py.
+  '''frontend/src/demo_snapshot\.json''',
+  '''docs/assets/.*''',
 ]

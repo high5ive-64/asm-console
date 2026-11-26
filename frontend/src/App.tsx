@@ -9,12 +9,14 @@ import { SettingsPage } from "./pages/Settings";
 import { AboutPage } from "./pages/About";
 import { NewScanPage } from "./pages/NewScan";
 import { ScanPage } from "./pages/Scan";
+import { DemoPage } from "./pages/Demo";
 
 const NAV = [
   { to: "/", label: "Home" },
   { to: "/scans/new", label: "New scan" },
   { to: "/settings", label: "Settings" },
   { to: "/about", label: "About" },
+  { to: "/demo", label: "Demo" },
 ];
 
 export function App() {
@@ -52,6 +54,7 @@ export function App() {
   else if ((m = match("/scans/:id", path))) page = <ScanPage id={m.id} />;
   else if (path.startsWith("/settings")) page = <SettingsPage />;
   else if (path === "/about") page = <AboutPage />;
+  else if (path === "/demo") page = <DemoPage />;
   else page = <div className="page"><h1>Not found</h1></div>;
 
   const logout = async () => {
