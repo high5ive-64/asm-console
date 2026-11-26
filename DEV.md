@@ -38,3 +38,29 @@ a warning if gitleaks isn't installed). Turn it on:
 
     git config core.hooksPath .githooks     # already set locally
     brew install gitleaks                    # or: go install github.com/gitleaks/gitleaks/v8@latest
+
+## GitHub Pages demo
+
+The public demo is a static build committed under `docs/`, served by GitHub Pages.
+
+To enable it: repo **Settings → Pages → Deploy from a branch**, branch `main`, folder
+`/docs`. The repo must be public (or on a plan that allows private Pages).
+
+To refresh after a new scan:
+
+    # 1. regenerate the redacted snapshot (run where backend deps exist, e.g. in the image)
+    python tools/export_demo_snapshot.py --scan <id>   # default: latest completed scan
+    # 2. rebuild the static demo into docs/
+    cd frontend && npm run build:demo
+
+`tools/export_demo_snapshot.py` replays the real result endpoints and redacts every
+response (hosts → `asset-NN`, IPs → `ip-NN`, emails → `email-NN`); standards reference
+links are preserved. The same `frontend/src/demo_snapshot.json` also feeds the in-app
+`/demo` tab, bundled by `make build`.
+
+## Pinning tool versions
+
+`docker/versions.env` pins ZAP, geckodriver and Typst. BBOT, dnstwist, uro and the Go
+tools default to latest at build time — after your first good build, run `make versions`
+and pin what you got. Set `ZAP_SHA256` to the checksum in the build log so future builds
+verify the download.

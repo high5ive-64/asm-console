@@ -36,34 +36,50 @@ The demo is the real results experience — RAG verdict, surface map, attack pat
 
 The same snapshot also powers the in-app **Demo** tab (`/demo`), so you can show the tool without exposing a live scan.
 
-> **Enabling the public link:** the demo is a static build committed under [`docs/`](docs/). In the repo’s **Settings → Pages**, set the source to **Deploy from a branch**, branch `main`, folder `/docs`. (The repository must be public, or on a plan that allows private Pages.) To refresh it after a new scan, re-export the snapshot and rebuild `docs/` with `npm run build:demo`.
-
 ## Architecture
 
 ```mermaid
 flowchart TB
-  user(["Operator"])
-  user -->|"localhost:8443 — token → session + CSRF"| ui
+  user(["👤 Operator"])
 
-  subgraph host["Your machine (loopback only)"]
-    subgraph ctr["Docker container — non-root · caps dropped · no-new-privileges"]
-      ui["React UI<br/>strict CSP · no inline script"]
-      guard["Guard middleware<br/>Host/Origin check · session · CSRF · security headers"]
-      api["Starlette API<br/>scans · runs · results · reports · secrets"]
-      pipe["Pipeline<br/>dependency DAG · 5-way parallel scheduler"]
-      runner["Runner<br/>argv allowlist · no shell · timeouts · secret masking"]
-      tools["Scanner tools<br/>BBOT · ZAP · tlsx · dnsx · naabu · testssl · …"]
-      db[("SQLite WAL<br/>+ run folders")]
-      sec["Secret store<br/>AES-256-GCM"]
+  subgraph host[" 🖥️ Your machine · loopback only "]
+    direction TB
+    subgraph ctr[" 🐳 Docker container · non-root · caps dropped · no-new-privileges "]
+      direction TB
+      ui["🖼️ React UI<br/>strict CSP · no inline script"]
+      guard["🛡️ Guard<br/>Host/Origin · session · CSRF · headers"]
+      api["🧭 Starlette API<br/>scans · runs · results · reports"]
+      pipe["⚙️ Pipeline<br/>dependency DAG · 5-way scheduler"]
+      runner["🏃 Runner<br/>argv allowlist · no shell · masking"]
+      tools["🧰 Scanner tools<br/>BBOT · ZAP · tlsx · dnsx · testssl · …"]
+      db[("🗄️ SQLite WAL<br/>+ run folders")]
+      sec["🔑 Secret store<br/>AES-256-GCM"]
+
       ui --> guard --> api
       api --> pipe --> runner --> tools
-      api --> db
-      api --> sec
+      api -.-> db
+      api -.-> sec
     end
   end
 
-  tools -->|"authorised scope only"| target["Target attack surface<br/>(your infra / an authorised prospect)"]
-  pipe -->|"SSRF-guarded · fixed hosts"| intel["Threat intel & feeds<br/>Shodan · CISA KEV · FIRST EPSS · NVD<br/>LeakIX · Netlas · urlscan · XposedOrNot · endoflife.date"]
+  user -->|"localhost:8443 · token → session + CSRF"| ui
+  tools -->|"authorised scope only"| target["🎯 Target attack surface<br/>your infra / an authorised prospect"]
+  pipe -->|"SSRF-guarded · fixed hosts"| intel["🌐 Threat intel &amp; feeds<br/>Shodan · KEV · EPSS · NVD · LeakIX · urlscan · …"]
+
+  classDef operator fill:#312e81,stroke:#6366f1,color:#eef2ff;
+  classDef app fill:#1e3a8a,stroke:#60a5fa,color:#eff6ff;
+  classDef security fill:#064e3b,stroke:#34d399,color:#ecfdf5;
+  classDef data fill:#334155,stroke:#94a3b8,color:#f8fafc;
+  classDef external fill:#7c2d12,stroke:#fb923c,color:#fff7ed;
+
+  class user operator;
+  class ui,api,pipe app;
+  class guard,runner,sec security;
+  class db data;
+  class target,intel external;
+
+  style host fill:transparent,stroke:#64748b,stroke-width:1px,color:#94a3b8;
+  style ctr fill:#0b1220,stroke:#475569,stroke-width:1px,color:#cbd5e1;
 ```
 
 Every command a stage runs is built as an argument list (never a shell string) and checked against an allowlist before execution; outbound fetches are guarded against SSRF; secrets are encrypted at rest and masked out of logs.
@@ -188,18 +204,18 @@ A local **gitleaks pre-commit hook** (`.githooks/pre-commit`, config in `.gitlea
 
 Downstream stages loop back to pick up hosts found after the initial sweep; hosts that no longer resolve are recorded as historical rather than dropped. A container restart mid-scan marks the scan *interrupted* and it can be resumed.
 
-## Pinning versions
-
-`docker/versions.env` pins ZAP, geckodriver and Typst. BBOT, dnstwist, uro and the Go tools default to latest at build time — after your first good build, run `make versions` and pin what you got. Set `ZAP_SHA256` to the checksum in the build log so future builds verify the download.
-
 ## Tests
 
-```bash
-make test        # inside the image (all tools present)
-# or bare, with the tools stubbed:
-cd backend && pip install -r requirements.txt pytest && python3 -m pytest -q
-```
+`make test` runs the full suite (191 tests) inside the image; the same tests gate every push in CI. Bare/stubbed runs and the dev loop are in [DEV.md](DEV.md).
 
+
+## Roadmap
+
+Built in milestones; **1–6 of 7 are done** — discovery & scope, authorisation, the light-touch pipeline, results, and reports.
+
+**Next — M7: AI providers.** Optional AI-assisted analysis and triage over scan data, plus modelling of the AI-agent / MCP attack surface (OWASP LLM Top 10, MITRE ATLAS). Guardrails-first by design: provider keys live in the encrypted secret store, agent permissions are least-privilege, no secret egress, and every action is auditable — consistent with the theoretical-only approach the attack-path engine already takes (reason over exposure, send no traffic).
+
+Full change history and what's planned next: **[CHANGELOG.md](CHANGELOG.md)**.
 
 ## Open-source tools & data sources
 
