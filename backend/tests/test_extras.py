@@ -630,7 +630,7 @@ def test_asn_netblocks(authed, xtools):
     state.providers = XProviders(dns=state.providers.dns)
     st, by = _run(client, h, sid, stages=["bbot_light"], asn_lookup=True)
     assert by["bbot_light"]["status"] == "done"
-    assert "-m http sslcert gowitness robots securitytxt asn" in (xtools / "home" / "bbot_calls.log").read_text()
+    assert "-m http sslcert robots securitytxt asn" in (xtools / "home" / "bbot_calls.log").read_text()
     assert by["bbot_light"]["summary"]["netblocks"] == 2 and by["bbot_light"]["summary"]["own_netblocks"] == 1
     db = state.db()
     try:

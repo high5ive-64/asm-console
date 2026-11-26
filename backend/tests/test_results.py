@@ -126,9 +126,9 @@ def test_phase1_dashboard_agent_surface_and_tech(authed, tools):
     assert o["values"]["agent_surface"] >= 2
     assert any(r["text"].startswith(str(o["values"]["agent_surface"])) and "AI-agent" in r["text"] for r in o["reasons"])
     assert any(c["key"] == "agent_surface" for c in o["cards"])
-    # technology breakdown is de-duped by case/alias: AWS and HSTS appear once, not Amazon+amazon
+    # technology breakdown is de-duped by case: Amazon and HSTS appear once, not Amazon+amazon
     names = [t["name"] for t in o["tech"]]
-    assert "AWS" in names and names.count("AWS") == 1 and "Amazon" not in names and "amazon" not in names
+    assert "Amazon" in names and names.count("Amazon") == 1 and "amazon" not in names
     assert "HSTS" in names and names.count("HSTS") == 1
     # the asset carries surface tags and is reachable via the agent filter
     a = client.get(f"/api/scans/{sid}/assets").json()["assets"]

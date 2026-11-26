@@ -825,6 +825,8 @@ ZAP_SPIDER_MAX_CHILDREN = 25   # child links per node: keeps big marketing sites
 
 def _spa_hosts(c: Ctx) -> set[str]:
     """Hosts fingerprinted as JS single-page apps, where ZAP's headless AJAX spider is worth its time."""
+    if c.state is None:        # pure plan-building (no scan/DB context): nothing to look up
+        return set()
     db = c.db()
     try:
         rows = db.all("SELECT host, tech FROM assets WHERE scan_id = ?", c.scan_id)

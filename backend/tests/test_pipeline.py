@@ -202,7 +202,7 @@ def test_options_validation(authed, tools):
     r = client.put(f"/api/scans/{sid}/options", json={"zap_confirm_targets": False, "stages": ["tls", "email"], "extra_ips": ["9.9.9.9"]}, headers=h)
     assert r.status_code == 200
     o = client.get(f"/api/scans/{sid}/options").json()
-    assert o["options"]["stages"] == ["tls", "email"] and len(o["stages"]) == 22
+    assert o["options"]["stages"] == ["tls", "email"] and len(o["stages"]) == 24
     est = client.get(f"/api/scans/{sid}/estimate").json()
     assert set(est["minutes"]) == {"tls", "email", "consolidate"} and est["hosts"] >= 3
 
@@ -238,7 +238,7 @@ def test_full_pipeline(authed, tools):
     assert by["email"]["summary"] == {"domains": 1, "dmarc_reject": 0}
     assert by["gau"]["summary"] == {"historical_urls": 3, "interesting": 2}   # notacme.com dropped
     assert by["lookalikes"]["summary"] == {"registered": 2, "with_mx": 1}
-    assert by["hibp"]["summary"] == {"breached_addresses": 2, "domains": 1}
+    assert by["hibp"]["summary"] == {"known_breaches": 0, "exposed_accounts": 2, "domains": 1, "sources": ["XposedOrNot", "HIBP"]}
     assert by["cloud"]["summary"]["ips_checked"] == 1
 
     m = client.get(f"/api/scans/{sid}/metrics").json()["metrics"]
@@ -629,8 +629,8 @@ def test_status_rank_and_dead_hosts_skipped():
 def test_zap_waits_for_host_choice_then_scans_only_chosen(authed, tools):
     client, h, sid = ready_scan(authed, tools)
     client.put(f"/api/scans/{sid}/authorisation", json=AUTH, headers=h)
-    client.put(f"/api/scans/{sid}/options", json={"stages": ["bbot_light", "tls", "zap", "email"], "zap_confirm_targets": True}, headers=h)
-    client.post(f"/api/scans/{sid}/start", headers=h)
+    client.put(f"/api/scans/{sid}/options", json={"stages": ["bbot_light", "tls", "zap", "email"], "zap_confirm_targets": True, "zap_active": True, "zap_active_minutes": 5}, headers=h)
+    client.post(f"/api/scans/{sid}/start?confirm=active", headers=h)
     stage = lambda k: next(s for s in client.get(f"/api/scans/{sid}/stages").json()["stages"] if s["key"] == k)
     assert pump(client, lambda: stage("zap")["status"] == "waiting", timeout=20)
     assert stage("email")["status"] == "done"                      # other stages carried on
