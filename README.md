@@ -127,7 +127,7 @@ RAG rules: **red** for a risky service, dangling DNS, expired cert or high ZAP a
 - **Loopback only.** Published to `127.0.0.1`; requests are rejected unless the `Host` header is `localhost`/`127.0.0.1` (blocks DNS rebinding), and cross-site `Origin`s are rejected.
 - **Auth.** One-time access token → `HttpOnly`, `SameSite=Strict` session cookie; every state-changing request needs a CSRF token.
 - **Strict CSP**, no inline script or style; React escapes all scan-derived text; reports download rather than render.
-- **Secrets** are AES-256-GCM encrypted at rest (key name bound as associated data), never returned by the API, and masked out of every log line. Master key is `0600`.
+- **Secrets** are AES-256-GCM encrypted at rest (key name bound as associated data), never returned by the API, and masked out of every log line. The master key is generated on first run and kept in `secrets/master.key` with `0600` (owner-only) permissions; `secrets/` is git-ignored, so the key never enters the repo.
 - **Command execution** is allowlist-gated: every argv is validated (binary, flags, numeric ranges, file paths confined to the run folder) and run without a shell. Credential brute-forcers and raw port scanners are blocked *and absent from the image*.
 - **Outbound fetches** are SSRF-guarded — per-host requests and redirects are refused if the target resolves to a loopback, link-local (incl. cloud-metadata), private or reserved address.
 - **Active traffic** can't run without a completed, SOC-notified authorisation record, and each active stage requires an explicit per-stage confirmation.
@@ -143,11 +143,16 @@ Findings and attack paths are mapped to, and deep-linked against, authoritative 
 
 GitHub Actions runs on every push / PR to `main` (`.github/workflows/ci.yml`):
 
-| Job | Gates (block merge) | Advisory |
-|---|---|---|
-| **backend** | `pytest` (191 tests) | `pip-audit` |
-| **frontend** | `esbuild` production build | `tsc --noEmit`, `npm audit` |
-| **secrets** | `gitleaks` scan (SARIF) | — |
+A **gate** fails the build and blocks merge; **advisory** steps run and report but don’t block.
+
+| Job (runner) | Step | Exactly what runs | |
+|---|---|---|---|
+| **backend** · Python 3.12 | Tests | `python -m pytest -q` — full suite, 191 tests | ✅ gate |
+| | Dependency audit | `pip-audit -r backend/requirements.txt` | advisory |
+| **frontend** · Node 20 | Typecheck | `npx tsc --noEmit` | advisory |
+| | Build | `node build.mjs` — esbuild production bundle | ✅ gate |
+| | Dependency audit | `npm audit` | advisory |
+| **secrets** | Secret scan | `gitleaks-action@v2` over full history, config `.gitleaks.toml` | ✅ gate |
 
 A local **gitleaks pre-commit hook** (`.githooks/pre-commit`, config in `.gitleaks.toml`) catches secrets before they're committed. See `DEV.md` for the dev loop.
 
