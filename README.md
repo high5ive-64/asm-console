@@ -34,6 +34,8 @@ Built for security teams to review **their own** infrastructure, and for consult
 
 The demo is the real results experience — RAG verdict, surface map, attack paths / kill chains, technologies and versions, CVE and MITRE ATT&CK/ATLAS mappings, findings with evidence — run against [pentest-ground.com](https://pentest-ground.com), a public penetration-testing practice range. Every host name, IP and email is pseudonymised (`asset-01`, `ip-07`, `email-01`) by the same redactor used for the share pack; standards references (MITRE, CWE, OWASP, NVD, EPSS, CISA KEV) are preserved so the mappings stay clickable. It is a point-in-time export, so report generation and raw-evidence files are disabled.
 
+![Outsider ASM surface map — exposed hosts wired to the attack paths they enable](screenshots/surface-map.jpg)
+
 The same snapshot also powers the in-app **Demo** tab (`/demo`), so you can show the tool without exposing a live scan.
 
 ## Architecture
@@ -88,6 +90,42 @@ Every command a stage runs is built as an argument list (never a shell string) a
 
 A scan is a staged pipeline with four jobs: **discover** the external estate, **collect** evidence with passive/light-touch probes, **correlate** everything into one entity graph, and **present** a prioritised verdict with kill-chain attack paths and reports. Each scan is a self-contained, re-runnable snapshot — nothing leaks between scans, and re-running produces a fresh snapshot you can diff against the last.
 
+```mermaid
+flowchart LR
+  disc["🛰️ Passive discovery<br/>subdomains · CT logs · DNS"] --> scope["✅ Confirm scope<br/>in_scope() gate"]
+  scope --> auth["📝 Authorisation<br/>recorded with the run"]
+  auth --> stages
+
+  subgraph stages["⚙️ Light-touch pipeline · dependency DAG, up to 5 in parallel"]
+    direction TB
+    live["Liveness &amp; fingerprint"]
+    dnsx["DNS &amp; certificates"]
+    web["Web hygiene · ZAP passive"]
+    svc["Services &amp; vulns · KEV / EPSS"]
+    mail["Email &amp; brand"]
+    osint["Breach &amp; OSINT"]
+  end
+
+  stages --> reenrich["🔁 Re-enrich<br/>late in-scope hosts"]
+  reenrich -.->|feed back| stages
+  stages --> cons["🧩 Consolidate"]
+  cons --> store[("🕸️ Entity graph<br/>+ assets · findings · metrics")]
+  store --> ov["🚦 Overview · RAG"]
+  store --> paths["🎯 Attack paths"]
+  store --> rep["📄 Reports · share pack"]
+
+  classDef a fill:#1e3a8a,stroke:#60a5fa,color:#eff6ff;
+  classDef b fill:#064e3b,stroke:#34d399,color:#ecfdf5;
+  classDef c fill:#334155,stroke:#94a3b8,color:#f8fafc;
+  class disc,scope,auth a;
+  class reenrich,cons b;
+  class store,ov,paths,rep c;
+  style stages fill:#0b1220,stroke:#475569,color:#cbd5e1;
+```
+
+*The scan end to end: discover and confirm scope, run the parallel light-touch pipeline (with a re-enrichment loop for late discoveries), then consolidate everything into one entity graph that the Overview, attack paths and reports all read from.*
+
+
 ### 1 · The scan, step by step
 
 **Discover & confirm scope.** From a single root domain, passive discovery (BBOT passive modules, certificate-transparency logs, DNS, and optional keyed datasets) enumerates subdomains, related domains and cloud names **before a single target server is touched**. Candidates are grouped (*resolves* / *third-party* / *no-DNS* / *wildcard*) and you confirm an explicit scope. A single `in_scope()` filter then gates every later stage, and authorisation (who approved it, the reference, the window, your source IP, SOC awareness) is recorded with the run as audit evidence.
@@ -127,7 +165,30 @@ Because each finding references its raw evidence file, every number on the dashb
 
 ### 3 · How correlation happens
 
-The consolidate stage builds a single **entity graph** from the raw output, and the rest of the product reasons over that graph rather than over loose tool logs. Nodes are typed — **host, ip, netblock, cert, tech, finding, lookalike** — and joined by typed edges: a host *resolves_to* an IP, an IP sits *in_netblock*, a host *runs* a technology, *presents* a certificate, *cname_to* another name, *has_finding*, or is *impersonated_by* a lookalike. From that structure the tool derives the correlations that loose logs can't show:
+The consolidate stage builds a single **entity graph** from the raw output, and the rest of the product reasons over that graph rather than over loose tool logs. Nodes are typed — **host, ip, netblock, cert, tech, finding, lookalike** — and joined by typed edges: a host *resolves_to* an IP, an IP sits *in_netblock*, a host *runs* a technology, *presents* a certificate, *cname_to* another name, *has_finding*, or is *impersonated_by* a lookalike.
+
+```mermaid
+flowchart LR
+  host(["host"]) -->|resolves_to| ip(["ip"])
+  ip -->|in_netblock| nb(["netblock"])
+  host -->|runs| tech(["tech + version"])
+  host -->|presents| cert(["cert"])
+  host -->|cname_to| host2(["host"])
+  host -->|has_finding| find(["finding"])
+  host -->|impersonated_by| look(["lookalike"])
+
+  tech -. "version → KEV / EPSS" .-> find
+  ip -. "co-hosting = blast radius" .-> host2
+  cert -. "shared cert groups hosts" .-> host2
+
+  classDef n fill:#1e3a8a,stroke:#60a5fa,color:#eff6ff;
+  classDef d fill:#7c2d12,stroke:#fb923c,color:#fff7ed;
+  class host,host2,ip,nb,tech,cert n; class find,look d;
+```
+
+*The typed entity graph the product reasons over; dotted links are the correlations it derives from the structure.*
+
+From that structure the tool derives the correlations that loose logs can't show:
 
 - **Whose IP is it?** cdncheck reclassifies every resolved IP against published CDN/WAF/cloud ranges **before** ports and CVEs are checked, so "your" exposure isn't really a shared edge.
 - **Blast radius** — co-hosting groups the hosts that share one origin IP, and shared-certificate analysis groups the hosts behind one cert, so a single compromise's reach is visible.
@@ -190,6 +251,12 @@ SpiderFoot: `docker compose --env-file docker/versions.env --profile spiderfoot 
 ## Results
 
 When a scan finishes, its **Results** step opens with ten tabs:
+
+![Overview — the RAG verdict, a change-since-last-scan summary, metric cards and the surface map](screenshots/overview.jpg)
+
+![Attack paths — kill chains grouped by type, with AI-agent threat tags, likelihood and MITRE mapping](screenshots/attack-paths.jpg)
+
+![Findings — issues grouped by severity and area, each tracing back to the tool and evidence that produced it](screenshots/findings.jpg)
 
 - **Overview** — the RAG verdict and its reasons, a surface map (issue treemap + attack-path graph), a worst-first worklist, metric cards with trend vs the previous scan, a vulnerability version-confidence matrix, discovered emails, and the agent / MCP surface. An **"Incomplete scan"** banner appears if any stage failed, so a green rating is never mistaken for a clean bill.
 - **Changes** — new/removed hosts, ports opened/closed, new/resolved findings and RAG movement vs any earlier scan.
