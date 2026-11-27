@@ -84,6 +84,74 @@ flowchart TB
 
 Every command a stage runs is built as an argument list (never a shell string) and checked against an allowlist before execution; outbound fetches are guarded against SSRF; secrets are encrypted at rest and masked out of logs.
 
+## How it works
+
+A scan is a staged pipeline with four jobs: **discover** the external estate, **collect** evidence with passive/light-touch probes, **correlate** everything into one entity graph, and **present** a prioritised verdict with kill-chain attack paths and reports. Each scan is a self-contained, re-runnable snapshot — nothing leaks between scans, and re-running produces a fresh snapshot you can diff against the last.
+
+### 1 · The scan, step by step
+
+**Discover & confirm scope.** From a single root domain, passive discovery (BBOT passive modules, certificate-transparency logs, DNS, and optional keyed datasets) enumerates subdomains, related domains and cloud names **before a single target server is touched**. Candidates are grouped (*resolves* / *third-party* / *no-DNS* / *wildcard*) and you confirm an explicit scope. A single `in_scope()` filter then gates every later stage, and authorisation (who approved it, the reference, the window, your source IP, SOC awareness) is recorded with the run as audit evidence.
+
+**The light-touch pipeline.** Once scope and authorisation are confirmed, 24 stages run. Every stage carries a **traffic tier** so you always know what it sends:
+
+- **no traffic** — API lookups or fully offline (Shodan InternetDB, KEV/EPSS, breach feeds, cdncheck).
+- **DNS only** — resolver queries (DNS snapshot, takeover checks, email posture, lookalikes).
+- **light-touch** — ordinary web requests, roughly one front-page fetch per host (liveness, tech fingerprint, TLS, ZAP passive).
+- **active** — off by default, authorisation-gated and confirmed per stage (naabu port confirmation, ZAP active, testssl vuln probes).
+
+The stages don't run in a fixed line. A dependency DAG (`STAGE_DEPS`) lets **up to five run in parallel**, each starting the moment the stages it depends on have finished. Grouped by what they do:
+
+| Group | Stages (tier) | What it collects |
+|---|---|---|
+| **Liveness & fingerprint** | `bbot_light` (light) · `tech` (light) · `screenshots` (light) | Which hosts are live, their technologies and **versions**, and a headless screenshot of each web host. |
+| **DNS & certificates** | `dns` (DNS) · `cdn` (none) · `takeover` (DNS) · `tls` / `tls_deep` (light) | Full record snapshot (A/AAAA/CNAME/MX/NS/TXT/CAA); cdncheck classifies each IP as *yours* vs a CDN/cloud edge; 50+ takeover signatures; certificate and protocol posture. |
+| **Web hygiene** | `zap` (light) | ZAP spiders live hosts with **passive rules only** — headers, cookie flags, vulnerable JS libraries, info leaks. No attack payloads. |
+| **Services & vulns** | `ports` (none) · `cloudlist` / `cloud` (none) · `feeds` (none) · `intel` (none) · `port_check` (active) | Open ports from Shodan; public IPs from your cloud accounts; LeakIX/Netlas exposure; CVEs ranked by CISA **KEV** and FIRST **EPSS**; optional active port confirmation. |
+| **Email & brand** | `email` (DNS) · `lookalikes` (DNS) · `squat` (none) · `urlscan` (none) | SPF/DMARC/MTA-STS/TLS-RPT/BIMI; registered typo/homoglyph domains; newly-registered squats; urlscan sightings (a live lookalike page is a phishing signal). |
+| **Breach & OSINT** | `gau` (none) · `hibp` (none) · `spiderfoot` (none) | Historical URLs (Wayback/Common Crawl/OTX); per-domain breach exposure; optional passive SpiderFoot sidecar. |
+| **Re-enrich & consolidate** | `reenrich` (light) · `consolidate` (none) | Loops back to probe late-discovered in-scope hosts, then combines every stage's raw output into assets, findings and metrics. |
+
+**The re-enrichment loop** is what stops the scan from missing things it uncovers mid-flight: historical URLs, certificate SANs, DNS and ZAP all surface new in-scope hosts, so `reenrich` probes those (liveness, tech, TLS, screenshots) and feeds them back into the CVE, port, takeover and DNS checks — strictly in-scope and bounded. **Cancel** stops cleanly; **Resume** continues from the first unfinished stage; **Retry** re-runs a single failed one.
+
+### 2 · How the data is structured
+
+Everything a scan produces lands in SQLite (WAL) as a per-scan snapshot, with raw tool output kept on disk under `data/runs/<date>-<id>/`.
+
+- **`scans`** — one row per scan (root domain, status, options, pinned tool versions, run folder). **`scope_items`** and **`authorisations`** capture the confirmed scope and the audit record.
+- **`stages`** + **`events`** — per-stage status, exit code, a JSON summary and a log path, plus a live event stream (what powers the live view).
+- **`assets`** — one row per host: resolved `ips`, `is_live`, `web_url`/`http_status`, detected `tech` (name + version), `tls` posture, `ports`, `cdn`/`third_party` flags, `in_cmdb`, which sources `found_by` it, and `ports_confirmed` if the active check ran.
+- **`findings`** — one row per issue: an `area` (email, tls, web, exposure, vulns, surface, dns, cloud, brand), a `severity` (critical → info), a title, the `host`, the `source_tool`, and an `evidence_ref` pointing back to the exact raw file. **`dns_records`** stores every record so DNS drift shows up in Changes.
+- **`metrics`** — the consolidated roll-up the dashboard reads; **`triage`** holds your per-host decisions; **`cmdb_entries`** is your known-asset list, used to flag the unknowns.
+
+Because each finding references its raw evidence file, every number on the dashboard traces back to the tool output that produced it — nothing is asserted without a source.
+
+### 3 · How correlation happens
+
+The consolidate stage builds a single **entity graph** from the raw output, and the rest of the product reasons over that graph rather than over loose tool logs. Nodes are typed — **host, ip, netblock, cert, tech, finding, lookalike** — and joined by typed edges: a host *resolves_to* an IP, an IP sits *in_netblock*, a host *runs* a technology, *presents* a certificate, *cname_to* another name, *has_finding*, or is *impersonated_by* a lookalike. From that structure the tool derives the correlations that loose logs can't show:
+
+- **Whose IP is it?** cdncheck reclassifies every resolved IP against published CDN/WAF/cloud ranges **before** ports and CVEs are checked, so "your" exposure isn't really a shared edge.
+- **Blast radius** — co-hosting groups the hosts that share one origin IP, and shared-certificate analysis groups the hosts behind one cert, so a single compromise's reach is visible.
+- **Version → known-exploited vuln** — technology versions from the fingerprint stage are matched to CVEs and ranked by CISA KEV and FIRST EPSS. These are banner matches, so they surface as *"verify"*, not confirmed vulnerabilities.
+- **AI-agent surface** — hosts that look like agent/MCP endpoints are tagged, because inconsistent or missing auth on them is a distinct, high-impact class of exposure.
+- **Attack paths** — the engine chains graph exposure into theoretical kill chains (e.g. an open agent/MCP endpoint, a known-exploited CVE as an entry point, a subdomain takeover, SSRF into cloud metadata, a leaked secret reused against its API). Each path is mapped to **MITRE ATT&CK / ATLAS**, carries a likelihood (*observed* / *plausible* / *theoretical*), and **sends no traffic** — it reasons over what the scan already collected.
+
+### 4 · How results are presented, and the logic behind it
+
+The Overview turns the graph into a single **RAG verdict** with transparent, rule-based reasons — never a black-box score:
+
+- **Red** if any of: a risky service is exposed (RDP, databases, SSH), a dangling DNS record (possible takeover), a high-severity LeakIX/SpiderFoot leak, an expired certificate, or a high-risk ZAP alert.
+- **Amber** if any of: hosts not in your CMDB and not yet triaged, a KEV-listed CVE matched to a version (verify), SPF over the 10-lookup limit, a lookalike domain with a live page, a domain without DMARC reject, medium ZAP alerts, a certificate expiring within 30 days, or an exposed AI-agent / MCP host.
+- **Green** only when none of the above fire.
+
+Every reason is a deep link into the tab and filter that explains it. Around the verdict:
+
+- **Metric cards** surface the counts that matter (hosts in scope, live web hosts, unknown hosts, risky services, open ports, KEV CVEs, agent surface, expiring certs…), each comparing against the previous scan.
+- **Top risks** are the worst issue *groups*, ranked by a risk weight (severity × spread) and capped to the few that deserve attention first.
+- **Surface map** has two lenses: a **treemap** sized by severity × affected hosts for "where is the risk concentrated", and an **attack graph** wiring exposed hosts to the attack paths they enable for "how would someone chain this".
+- **Ten result tabs** go deep — Overview, Changes, Assets, IPs, DNS, Attack paths, Findings (with embedded per-tool evidence), Triage, Files (raw output) and Reports; see [Results](#results) for what each one holds.
+- **Changes** diffs this scan against the previous one — new and resolved findings, hosts that appeared or disappeared, newly opened ports, DNS drift — so a new deployment's fresh exposure surfaces immediately.
+- **Reports** render from the same data (so nothing disagrees with the dashboard): a full board-to-engineering document, and a **share pack** that is force-redacted — host names, IPs and emails replaced with `asset-01` / `ip-07` / `email-01` pseudonyms — safe to hand to a vendor, insurer or the board.
+
 ## Run it
 
 Requirements: Docker Desktop (or OrbStack) on macOS, plus about 6 GB of free RAM for scans.
@@ -133,8 +201,6 @@ When a scan finishes, its **Results** step opens with ten tabs:
 - **Triage** — hosts not in your CMDB; decide what each is. Undecided = unknown (amber).
 - **Files** — read-only browser of the run folder (HTML downloads rather than opens, since tool output can be hostile).
 - **Reports** — a full board-to-engineering document, plus a **redacted share-zip** (hosts/IPs → `asset-01`/`ip-07`, IPv6 and emails included) safe to send outside the team.
-
-RAG rules: **red** for a risky service, dangling DNS, expired cert or high ZAP alert; **amber** for unknown hosts, no DMARC reject, medium ZAP alerts or certs expiring within 30 days.
 
 ## Security
 
