@@ -1052,6 +1052,9 @@ const CAT_LABEL: Record<string, string> = {
   lateral: "Lateral movement",
   phishing: "Phishing",
   ddos: "Denial of service",
+  takeover: "Subdomain takeover",
+  mitm: "Adversary-in-the-middle",
+  recon: "Reconnaissance",
 };
 const LIK_TONE: Record<string, "bad" | "warn" | "muted"> = { observed: "bad", plausible: "warn", theoretical: "muted" };
 
