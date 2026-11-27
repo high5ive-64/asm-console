@@ -2971,7 +2971,8 @@ function Treemap(props: { issues: Issue[]; onEntity: (kind: EntityKind, id: stri
 
 function AttackGraph(props: { paths: AttackPath[]; onEntity: (kind: EntityKind, id: string | number) => void }) {
   const [hover, setHover] = useState<string | null>(null);
-  const paths = props.paths.slice(0, 8);
+  // demo shows the full spread (incl. medium/amber paths); real scans keep the graph to the worst 8
+  const paths = props.paths.slice(0, isDemo() ? 16 : 8);
   if (paths.length === 0) return <Empty>No attack paths were modelled for this scan.</Empty>;
   const hostSet: string[] = [];
   for (const p of paths) for (const h of p.nodes) if (!hostSet.includes(h) && hostSet.length < 14) hostSet.push(h);
